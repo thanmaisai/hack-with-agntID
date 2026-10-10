@@ -1,0 +1,134 @@
+# Vend-Safe — Full Stack Compose
+#
+# Starts 3 services:
+#   shop          - FastMCP shop server (no guardrails, port 9000)
+#   achr-runtime  - AgntID runtime UI + MCP gateway (ports 8080, 8082)
+#   achr-intent-parser - NLI intent model (internal)
+#
+# Usage:
+#   docker compose up -d              # start everything
+#   docker compose up -d --build      # rebuild shop image after code changes
+#   docker compose logs -f shop       # watch shop logs
+#   docker compose down               # stop everything
+#   docker compose down -v            # stop + wipe volumes (full reset)
+#
+# After startup:
+#   Shop admin:   http://localhost:9000/admin/state
+#   Runtime UI:   http://localhost:8080   (paste bootstrap token to connect)
+#   MCP gateway:  http://localhost:8082/mcp
+#
+# In the AgntID portal, add the shop as:
+#   Remote HTTP → URL: http://shop:9000/mcp  (container name, no localhost!)
+#   Server ID: shop | Prefix: shop
+#
+# Environment variables (set in .env or export before running):
+#   OPENAI_API_KEY      - for agent.py and AgntID LLM-based intent engine
+#   LOG_LEVEL           - runtime log verbosity (default: info)
+
+services:
+
+  # ── Shop MCP Server ──────────────────────────────────────────────────────────
+  shop:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    image: vend-safe-shop:latest
+    container_name: vend-safe-shop
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:9000/admin/state')"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - agntid-net
+
+  # ── AgntID Runtime ───────────────────────────────────────────────────────────
+  achr-runtime:
+    image: ${ACHR_RUNTIME_IMAGE:-ghcr.io/agntid-ai/achr-runtime:main}
+    container_name: agntid-runtime
+    restart: unless-stopped
+    ports:
+      - "${RUNTIME_PORT:-8080}:8080"
+      - "${MCP_PORT:-8082}:8000"
+    volumes:
+      - runtime-config:/config
+      - runtime-data:/data
+      - runtime-logs:/logs
+      - runtime-mcp-cache:/cache/mcp
+    environment:
+      - RUSE_ENV=production
+      - RUSE_LOG_LEVEL=${LOG_LEVEL:-info}
+      - RUSE_AGENID_ENDPOINT=${RUSE_AGENID_ENDPOINT:-https://runtime.${DOMAIN:-agntid.ai}:8443}
+      - RUSE_SERVER_PORT=8080
+      - RUSE_STORAGE_PATH=/data/ruse.db
+      - RUSE_MCP_ENABLED=true
+      - RUSE_MCP_TRANSPORT=http
+      - RUSE_MCP_PORT=8000
+      - RUSE_MCP_EXTERNAL_PORT=${MCP_PORT:-8082}
+      - RUSE_MCP_HOST=0.0.0.0
+      - RUSE_MCP_TUNNEL_ENDPOINT=http://127.0.0.1:8000/mcp
+      - RUSE_MCP_RUNTIME_UI_ENDPOINT=http://127.0.0.1:8080
+      - RUSE_MCP_SIMULATION_ENDPOINT=http://127.0.0.1:8000/mcp
+      - INTENT_PARSER_V2_CLASSIFY_URL=http://achr-intent-parser:8000
+      - INTENT_PARSER_V2_CLASSIFY_TIMEOUT_MS=${INTENT_PARSER_V2_CLASSIFY_TIMEOUT_MS:-10000}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    depends_on:
+      achr-intent-parser:
+        condition: service_healthy
+    networks:
+      - agntid-net
+
+  # ── AgntID Intent Parser (NLI model) ─────────────────────────────────────────
+  achr-intent-parser:
+    image: ${ACHR_INTENT_PARSER_IMAGE:-ghcr.io/agntid-ai/intent-parser-ml:main}
+    container_name: agntid-intent-parser
+    restart: unless-stopped
+    stop_grace_period: 600s
+    expose:
+      - "8000"
+    volumes:
+      - intent-parser-model:/app/model-cache
+    environment:
+      - HF_HOME=/app/model-cache
+      - NLI_MODEL_NAME=cross-encoder/nli-deberta-v3-base
+      - PORT=8000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 30s
+      retries: 5
+      start_period: 300s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: "0.5"
+        reservations:
+          memory: 512M
+          cpus: "0.25"
+    networks:
+      - agntid-net
+
+# ── Shared network (runtime can reach shop by container name) ─────────────────
+networks:
+  agntid-net:
+    driver: bridge
+
+# ── Named volumes (persist across restarts) ───────────────────────────────────
+volumes:
+  runtime-config:
+  runtime-data:
+  runtime-logs:
+  runtime-mcp-cache:
+  intent-parser-model:

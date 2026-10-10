@@ -1,0 +1,38 @@
+# Git
+.git
+.gitignore
+
+# Python
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info
+dist/
+build/
+
+# Dev tools
+.vscode
+.idea
+*.swp
+*.swo
+
+# AgntID SDK source (not needed in image)
+agntid-python/
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Docs & project files
+resources/
+README.md
+FEEDBACK.md
+requirements.txt
+
+# Env files (never bake secrets into image)
+.env
+.env.*
