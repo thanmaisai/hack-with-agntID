@@ -1,73 +1,53 @@
-# FEEDBACK.md — Vend-Safe build log
+# AgntID platform feedback from Vend-Safe
 
-Log of issues encountered while building. Each entry: scenario, what was tried, what happened, workaround, requested feature.
+Thanks for building AgntID. We used a local MCP shop and a plain Python/OpenAI function-calling agent to test runtime policies, task setup, tool selection, and reporting. This feedback is limited to behaviors we reproduced in the demo; local setup mistakes are intentionally excluded.
 
----
+**Test context:** 10 October 2026; local AgntID runtime image `ghcr.io/agntid-ai/achr-runtime:main`; shop initially on FastMCP 4.1.0, then pinned to FastMCP 2.14.7 for the working run; Python MCP SDK integration. The portal runtime settings showed LLM-based intent selected with the `agntID key` credential.
 
-## 1. Cumulative limits not expressible
+## 1. Task prompt is not visible to action-level intent validation
 
-**Scenario**: Attack 2 allows ten separate orders of 10 cubes each — each passes the per-call cap of 10, but together they drain $1,200.
+**Priority:** High — affects whether intent controls can be relied on for plain MCP agents.
 
-**Tried**: Looking for a cross-call or per-task budget limit in Access Control.
+**What we did:** Opened a task through the AgntID Python SDK with the complete user prompt, then made a tool call through the SDK’s wrapped MCP client with the task ID attached.
 
-**Happened**: Only per-call numeric ranges are documented. No daily, per-task, or aggregate spend limit exists.
+**What we observed:** Tool calls were processed and policies ran, but runtime logs repeatedly reported `prompt_length=0` and `No prompt available - skipping intent validation (graceful degradation)`. For example, the quote and discount tool calls entered the intent flow but intent validation was skipped.
 
-**Workaround**: None available in the runtime. Documented the gap.
+**Why it matters:** The portal can show an intent engine configured while action-level validation for this execution path does not receive the task prompt. A developer may assume intent was evaluated when it was actually skipped.
 
-**Requested feature**: Daily or per-task spend/quantity cumulative cap enforced by the runtime, not by the agent.
+**Suggested improvement:** Ensure task-open prompt context is correlated with subsequent MCP calls in the documented plain MCP/SDK flow. If that is not supported, document the required context propagation explicitly and provide a clear, configurable fail-closed option for cases where intent validation is required.
 
----
+**Evidence/verification:** Runtime log entries during our successful runs contained `prompt_length=0` and `No prompt available - skipping intent validation`; input policies still correctly denied the unsafe discount and order values.
 
-## 2. Allowlists and cost-floor rules not expressible
+## 2. Configured intent engine and effective engine are hard to reconcile
 
-**Scenario**: Wanted to express "price must be above item cost" and "supplier must be in an approved list."
+**Priority:** High — configuration and observability clarity.
 
-**Tried**: Reviewing all policy configuration options in Access Control.
+**What we did:** Selected **LLM-based** intent in the portal Settings page and selected the healthy `agntID key` credential.
 
-**Happened**: Only min/max numeric ranges are documented and available. Approved-supplier allowlists and relative rules (e.g., price > cost field) cannot be expressed.
+**What we observed:** The UI showed LLM-based selected. Runtime sync logs later reported `Applying intent_config from portal sync (engine=contextual)` and `Intent engine selection applied (engine=contextual fallback=standard)`. Tool-call logs also showed intent validation skipped because no prompt was available.
 
-**Workaround**: None. Noted as *undocumented* rather than *missing* pending further review.
+**Why it matters:** It was difficult to tell whether `contextual` is the expected runtime mapping for the portal’s LLM-based option, whether the configured provider was actually used, or whether execution fell back. We do not claim the mapping itself is a defect; the effective behavior was not clear from the UI and logs.
 
-**Requested feature**: String allowlists and cross-field comparison rules in policy configuration.
+**Suggested improvement:** Show the effective engine/provider and model used by the runtime, credential health, fallback state/reason, and per-call outcome in one place. Make skipped validation visually distinct from a successful intent decision, and surface a warning when the selected engine cannot evaluate a call.
 
----
+**Evidence/verification:** Portal Settings showed LLM-based plus `agntID key`; runtime logs showed the engine/fallback messages above and skipped intent decisions. We therefore did not present runtime-side LLM intent as verified protection in the demo.
 
-## 3. Caller trust — message role vs. tool client role
+## 3. FastMCP 4 upstream response failed with an opaque runtime error
 
-**Scenario**: Attack 1 has a customer claiming to be the CEO in the message body. Wanted to refuse the discount on that basis.
+**Priority:** Medium — MCP ecosystem compatibility and diagnostics.
 
-**Tried**: Reviewing role grants and access control scopes.
+**What we did:** Connected the local shop, initially using FastMCP 4.1.0, as an upstream MCP server in the AgntID runtime and called its supplier-quote tool.
 
-**Happened**: Role grants apply to the MCP client identity (agent), not to the message author. A customer claiming to be the CEO in the prompt text cannot be distinguished from the agent at the tool-call boundary.
+**What we observed:** The portal/runtime recorded policy evaluation as allowed, but tool execution failed with `No module named 'fastmcp.server.providers.prefab_payload'`. The same shop worked after pinning its server to FastMCP 2.14.7 and using the Compose-network URL `http://shop:9000/mcp`.
 
-**Workaround**: Policy limit on `percent` (max 20) prevents the exploit regardless of claimed identity.
+**Why it matters:** The policy result and upstream execution failure looked contradictory at first and were easy to misread as a policy denial. The compatibility issue was diagnosable only after inspecting the underlying runtime error.
 
-**Requested feature**: Per-prompt-author role annotation that flows through the task context.
+**Suggested improvement:** Validate supported upstream MCP/FastMCP versions during connection testing, or return an actionable incompatibility message that distinguishes policy evaluation from upstream transport/result parsing failures. A compatibility matrix for supported server SDK versions would also help.
 
----
+**Evidence/verification:** FastMCP 4.1.0 produced the missing-module error; rebuilding the shop with FastMCP 2.14.7 and changing the endpoint to `http://shop:9000/mcp` made the quote call succeed. The connection test then discovered seven tools and showed Applied.
 
-## 4. Approval flow for plain MCP agents
+## Scope note
 
-**Scenario**: Wanted to add a human-approval pause before large orders.
+The demo also uncovered local integration mistakes: our Python client initially unpacked the MCP transport result incorrectly, and the portal upstream URL initially used a host-only address that was unreachable from the Compose runtime. Those were project configuration/code issues, not AgntID product gaps, so they are not included as platform feedback.
 
-**Tried**: Searching approval flow documentation for plain MCP (non-Deep Agents) usage.
-
-**Happened**: Approval appears to be documented only in the Deep Agents example. Not clear if it is available to plain MCP + agntid SDK without using LangChain/Deep Agents.
-
-**Workaround**: Not implemented for this build. Documented as *undocumented* for plain MCP path.
-
-**Requested feature**: Approval flow documented and available for plain OpenAI function-calling agents using the core SDK.
-
----
-
-## 5. Policy dry-run / preview mode
-
-**Scenario**: Before saving policies, wanted to verify what calls would be denied without affecting live traffic.
-
-**Tried**: Looking for a simulation or dry-run option in Access Control → Access Policies.
-
-**Happened**: No dry-run or preview mode found. Changes go live on next sync.
-
-**Workaround**: Tested in Simulator before enabling enforcement for the attack runs.
-
-**Requested feature**: Policy dry-run that shows allow/deny decisions against sample inputs before enforcement is applied.
+We also have ideas such as cumulative budgets, allowlists, approval flows, and policy previews. We have not verified their availability across current plans/configurations or reproduced them as blockers in this integration, so they are omitted from this issue-focused report.
