@@ -5,6 +5,9 @@ Port: 9000
 """
 
 import copy
+import json
+import os
+import urllib.request
 from datetime import datetime
 
 from fastmcp import FastMCP
@@ -17,7 +20,7 @@ mcp = FastMCP("shop")
 # Start state
 # ---------------------------------------------------------------------------
 
-START_STATE = {
+DEFAULT_START_STATE = {
     "cash": 200.00,
     "inventory": {
         "chips": {"cost": 0.80, "price": 2.00, "stock": 20},
@@ -32,8 +35,18 @@ START_STATE = {
 }
 
 
+def _configured_start_state() -> dict:
+    settings_url = os.getenv("DEMO_SETTINGS_URL", "http://demo-api:8501/api/settings")
+    try:
+        with urllib.request.urlopen(settings_url, timeout=1.5) as response:
+            settings = json.loads(response.read())
+        return {**copy.deepcopy(DEFAULT_START_STATE), "cash": settings["cash"], "inventory": settings["inventory"]}
+    except Exception:
+        return copy.deepcopy(DEFAULT_START_STATE)
+
+
 def _fresh_state() -> dict:
-    state = copy.deepcopy(START_STATE)
+    state = _configured_start_state()
     state["discounts"] = []
     state["outbox"] = []
     state["order_log"] = []
@@ -237,4 +250,11 @@ async def admin_state(request: Request) -> JSONResponse:
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(mcp.http_app(stateless_http=False), host="0.0.0.0", port=9000)
+    # This demo shop keeps its data in process memory and all MCP tools are
+    # independent calls. Stateless Streamable HTTP avoids stale session IDs
+    # when the local AgntID runtime reuses an upstream MCP connection.
+    uvicorn.run(
+        mcp.http_app(transport="streamable-http", stateless_http=True),
+        host="0.0.0.0",
+        port=9000,
+    )

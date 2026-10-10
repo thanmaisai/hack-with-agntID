@@ -40,6 +40,17 @@ AGNTID_MCP_URL = os.getenv("AGNTID_MCP_URL", "http://localhost:8082/mcp")
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 
 
+def _emit(on_event, event_type: str, **payload) -> None:
+    """Send a structured lifecycle event to an optional UI observer."""
+    if on_event is None:
+        return
+    try:
+        on_event({"type": event_type, **payload})
+    except Exception as exc:
+        # Observability must not break the agent execution path.
+        print(f"Warning: trace observer failed: {exc}")
+
+
 # ---------------------------------------------------------------------------
 # Tool schema helpers
 # ---------------------------------------------------------------------------
@@ -77,6 +88,7 @@ async def _run_model_loop(
     call_tool_fn,
     mode: str,
     attack: int,
+    on_event=None,
 ) -> dict:
     """
     Drive the OpenAI function-calling loop.
@@ -105,8 +117,18 @@ async def _run_model_loop(
 
     print(f"\n[{mode.upper()} | Attack {attack}] Starting agent loop...")
     print(f"Prompt: {prompt[:120]}{'...' if len(prompt) > 120 else ''}\n")
+    _emit(
+        on_event,
+        "agent_started",
+        mode=mode,
+        attack=attack,
+        prompt=prompt,
+        model=OPENAI_MODEL,
+        available_tools=[tool.name for tool in tools],
+    )
 
     for _round in range(max_rounds):
+        _emit(on_event, "model_request", mode=mode, attack=attack, round=_round + 1)
         response = await client.chat.completions.create(
             model=OPENAI_MODEL,
             messages=messages,
@@ -118,17 +140,47 @@ async def _run_model_loop(
         messages.append(msg.model_dump(exclude_none=True))
 
         if msg.tool_calls:
+            _emit(
+                on_event,
+                "model_tool_plan",
+                mode=mode,
+                attack=attack,
+                tools=[
+                    {
+                        "name": tool_call.function.name,
+                        "arguments": json.loads(tool_call.function.arguments or "{}"),
+                    }
+                    for tool_call in msg.tool_calls
+                ],
+            )
             denied_this_round = False
             for tc in msg.tool_calls:
                 fn_name = tc.function.name
                 fn_args = json.loads(tc.function.arguments or "{}")
 
                 print(f"  -> Tool call: {fn_name}({fn_args})")
+                _emit(
+                    on_event,
+                    "tool_call_started",
+                    mode=mode,
+                    attack=attack,
+                    tool=fn_name,
+                    arguments=fn_args,
+                )
                 try:
                     result = await call_tool_fn(fn_name, fn_args)
                 except Exception as exc:
                     calls.append({"tool": fn_name, "status": "error", "detail": str(exc)})
                     print(f"  <- ERROR: {exc}")
+                    _emit(
+                        on_event,
+                        "tool_call_finished",
+                        mode=mode,
+                        attack=attack,
+                        tool=fn_name,
+                        status="error",
+                        detail=str(exc),
+                    )
                     messages.append({
                         "role": "tool",
                         "tool_call_id": tc.id,
@@ -157,6 +209,15 @@ async def _run_model_loop(
                     prefix = "[DENIED]" if status == "denied" else "[RUNTIME ERROR]"
                     tool_result_str = f"{prefix} {result.message}"
                     calls.append({"tool": fn_name, "status": status, "detail": result.message})
+                    _emit(
+                        on_event,
+                        "tool_call_finished",
+                        mode=mode,
+                        attack=attack,
+                        tool=fn_name,
+                        status=status,
+                        detail=result.message,
+                    )
                 else:
                     # Scalar or dict result
                     if hasattr(result, "value"):
@@ -176,6 +237,15 @@ async def _run_model_loop(
                         tool_result_str = str(result)
                     print(f"  <- Result: {tool_result_str[:200]}")
                     calls.append({"tool": fn_name, "status": "success"})
+                    _emit(
+                        on_event,
+                        "tool_call_finished",
+                        mode=mode,
+                        attack=attack,
+                        tool=fn_name,
+                        status="success",
+                        detail=tool_result_str,
+                    )
 
                 messages.append(
                     {
@@ -191,6 +261,15 @@ async def _run_model_loop(
             # No more tool calls - final answer
             answer = msg.content or ""
             print(f"\nFinal answer: {answer}")
+            _emit(
+                on_event,
+                "agent_finished",
+                mode=mode,
+                attack=attack,
+                completed=True,
+                answer=answer,
+                calls=calls,
+            )
             return {
                 "denials": denials,
                 "answer": answer,
@@ -199,13 +278,23 @@ async def _run_model_loop(
                 "completed": True,
             }
 
-    return {
+    result = {
         "denials": denials,
         "answer": answer if "answer" in locals() else "[max rounds reached]",
         "calls": calls,
         "available_tools": [t.name for t in tools],
         "completed": False,
     }
+    _emit(
+        on_event,
+        "agent_finished",
+        mode=mode,
+        attack=attack,
+        completed=False,
+        answer=result["answer"],
+        calls=calls,
+    )
+    return result
 
 
 async def _create_openai_client() -> openai.AsyncOpenAI:
@@ -220,9 +309,9 @@ async def _create_openai_client() -> openai.AsyncOpenAI:
 # ---------------------------------------------------------------------------
 
 
-async def run_direct(attack: int) -> dict:
+async def run_direct(attack: int | str, on_event=None, prompt_override: str | None = None) -> dict:
     """Run attack directly against the shop MCP server (no AgntID)."""
-    prompt = ATTACKS[attack]
+    prompt = prompt_override if prompt_override is not None else ATTACKS[attack]
 
     async with streamable_http_client(SHOP_MCP_URL) as (read, write, _get_session_id):
         async with ClientSession(read, write) as session:
@@ -233,7 +322,8 @@ async def run_direct(attack: int) -> dict:
             async def call_tool(name: str, args: dict):
                 return await session.call_tool(name, args)
 
-            stats = await _run_model_loop(prompt, tools, call_tool, "direct", attack)
+            _emit(on_event, "tools_discovered", mode="direct", attack=attack, visible=[t.name for t in tools], shortlisted=[t.name for t in tools])
+            stats = await _run_model_loop(prompt, tools, call_tool, "direct", attack, on_event)
 
     return stats
 
@@ -243,7 +333,7 @@ async def run_direct(attack: int) -> dict:
 # ---------------------------------------------------------------------------
 
 
-async def run_agntid(attack: int) -> dict:
+async def run_agntid(attack: int | str, on_event=None, prompt_override: str | None = None) -> dict:
     """Run attack through the AgntID runtime (enforced mode)."""
     try:
         import agntid
@@ -253,7 +343,7 @@ async def run_agntid(attack: int) -> dict:
             "https://github.com/AGNTID-AI/agntid-python and its OpenAI extra."
         ) from exc
 
-    prompt = AGNTID_ATTACKS[attack]
+    prompt = prompt_override if prompt_override is not None else AGNTID_ATTACKS[attack]
     access_token = os.getenv("AGNTID_ACCESS_TOKEN") or None
 
     async with agntid.AgntidMCPClient(
@@ -275,12 +365,32 @@ async def run_agntid(attack: int) -> dict:
                 raise RuntimeError(
                     f"Task open failed: {task_open.reason}"
                 )
+            _emit(
+                on_event,
+                "task_opened",
+                attack=attack,
+                task_id=task_id,
+                intent_prepared=task_open.intent_prepared,
+                intent_reason=task_open.intent_reason,
+                eligible_tools=task_open.eligible_tool_count,
+                relevant_tools=task_open.relevant_tool_count,
+            )
 
             # Narrow to the intent-shortlisted tools
             tools = agntid.filter_tools_for_task(visible, task_open)
             print(
                 f"  [AgntID] {len(visible)} visible -> "
                 f"{len(tools)} shortlisted for this task"
+            )
+            _emit(
+                on_event,
+                "tools_discovered",
+                mode="agntid",
+                attack=attack,
+                visible=[getattr(tool, "name", "") for tool in visible],
+                shortlisted=[getattr(tool, "name", "") for tool in tools],
+                intent_prepared=task_open.intent_prepared,
+                intent_reason=task_open.intent_reason,
             )
 
             async def call_tool(name: str, args: dict):
@@ -297,7 +407,7 @@ async def run_agntid(attack: int) -> dict:
                 return result
 
             stats = await _run_model_loop(
-                prompt, tools, call_tool, "agntid", attack
+                prompt, tools, call_tool, "agntid", attack, on_event
             )
 
     return stats

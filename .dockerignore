@@ -21,9 +21,12 @@ build/
 
 # AgntID SDK source (not needed in image)
 agntid-python/
+!agntid-python/
+!agntid-python/**
 
 # Docker
 Dockerfile
+!Dockerfile.dashboard
 docker-compose.yml
 .dockerignore
 
@@ -32,6 +35,7 @@ resources/
 README.md
 FEEDBACK.md
 requirements.txt
+!requirements.txt
 
 # Env files (never bake secrets into image)
 .env

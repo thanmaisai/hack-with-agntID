@@ -26,8 +26,10 @@ attacks.py           Synthetic prompts and agent instructions
 demo.py              Setup, start/stop, readiness, and comparison command hub
 run_compare.py       Six-run harness, state resets, scoreboard, outcome checks
 shop_server.py       Synthetic shop MCP tools and local admin endpoints
-docker-compose.yml   Shop, AgntID runtime, intent parser, and persistent volumes
+docker-compose.yml   React UI, demo API, shop, AgntID runtime, and intent parser
 Dockerfile           Isolated shop server image
+Dockerfile.dashboard Demo API image; installs the local AgntID SDK
+ui/                  React + Vite UI, shadcn-style components, and Lucide icons
 requirements.txt     Local Python agent dependencies
 requirements-shop.txt Shop container dependencies (FastMCP 2.14.x for runtime compatibility)
 .env.example         Safe configuration template; copy to ignored .env
@@ -77,7 +79,15 @@ In the AgntID portal, the shop MCP server URL should be `http://shop:9000/mcp` f
 
 ## Run the demo
 
-Once `doctor` reports ready:
+Start the Docker-hosted React UI and services:
+
+```bash
+docker compose up -d --build
+```
+
+Open `http://127.0.0.1:8501`. Start in **Playground** to enter any shop request or choose a prompt starter. The exact same prompt is run once directly and once through AgntID, with a shop reset between them. The live trace follows model plans, tool calls, runtime decisions, and resulting shop state. Use **Guided scenarios** for the fixed examples and their expected checks. Playground runs are exploratory and do not claim a pass/fail result. The UI and API run in Docker; the browser never receives the API key. Prompts are sent to the configured model API, so use synthetic data only. To use the short launcher, run `.venv/bin/python demo.py dashboard`.
+
+To run the comparison in a terminal instead:
 
 ```bash
 .venv/bin/python demo.py run
@@ -90,7 +100,7 @@ This resets the synthetic shop before each scenario, runs all three attacks firs
 .venv/bin/python agent.py --mode agntid --attack 1
 ```
 
-Choose `--attack 1`, `2`, or `3`. Use the same prompt and compare the shop state and AgntID Reporting evidence. See [Portal setup](PORTAL_SETUP.md) for policy configuration and [the demo walkthrough](DEMO_FLOW.md) for a presenter-friendly script.
+Choose `--attack 1`, `2`, or `3`. See [the demo guide](DEMO_GUIDE.md) to understand the architecture and [the presentation script](DEMO_PRESENTATION.md) for the talk track. Note that Attack 3 intentionally uses different prompt wording in direct and AgntID modes.
 
 ## Stop and reset
 

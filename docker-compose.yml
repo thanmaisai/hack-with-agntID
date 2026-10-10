@@ -1,6 +1,8 @@
 # Vend-Safe — Full Stack Compose
 #
-# Starts 3 services:
+# Starts the demo UI, dashboard API, and AgntID demo services:
+#   demo-ui       - React + shadcn/ui + Lucide frontend (port 8501)
+#   demo-api      - local comparison API and live trace stream (internal)
 #   shop          - FastMCP shop server (no guardrails, port 9000)
 #   achr-runtime  - AgntID runtime UI + MCP gateway (ports 8080, 8082)
 #   achr-intent-parser - NLI intent model (internal)
@@ -16,6 +18,7 @@
 #   Shop admin:   http://localhost:9000/admin/state
 #   Runtime UI:   http://localhost:8080   (paste bootstrap token to connect)
 #   MCP gateway:  http://localhost:8082/mcp
+#   Demo UI:      http://localhost:8501
 #
 # In the AgntID portal, add the shop as:
 #   Remote HTTP → URL: http://shop:9000/mcp  (container name, no localhost!)
@@ -26,6 +29,48 @@
 #   LOG_LEVEL           - runtime log verbosity (default: info)
 
 services:
+
+  # ── Demo API (runs the existing comparison harness) ─────────────────────────
+  demo-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.dashboard
+    container_name: vend-safe-demo-api
+    restart: unless-stopped
+    expose:
+      - "8501"
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      SHOP_MCP_URL: http://shop:9000/mcp
+      SHOP_ADMIN_BASE: http://shop:9000
+      AGNTID_MCP_URL: http://achr-runtime:8000/mcp
+      AGNTID_ACCESS_TOKEN: ${AGNTID_ACCESS_TOKEN:-}
+      DEMO_UI_PORT: ${DEMO_UI_PORT:-8501}
+      DEMO_SETTINGS_DB: /data/demo_settings.sqlite3
+    volumes:
+      - demo-settings:/data
+    depends_on:
+      shop:
+        condition: service_healthy
+      achr-runtime:
+        condition: service_healthy
+    networks:
+      - agntid-net
+
+  # ── React demo UI ────────────────────────────────────────────────────────────
+  demo-ui:
+    build:
+      context: ./ui
+      dockerfile: Dockerfile
+    container_name: vend-safe-demo-ui
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${DEMO_UI_PORT:-8501}:80"
+    depends_on:
+      - demo-api
+    networks:
+      - agntid-net
 
   # ── Shop MCP Server ──────────────────────────────────────────────────────────
   shop:
@@ -127,6 +172,7 @@ networks:
 
 # ── Named volumes (persist across restarts) ───────────────────────────────────
 volumes:
+  demo-settings:
   runtime-config:
   runtime-data:
   runtime-logs:

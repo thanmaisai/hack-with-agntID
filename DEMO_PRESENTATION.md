@@ -6,17 +6,21 @@
 
 **Say:** “This is a small shop agent with tools to change prices, order stock, read a synthetic customer list, and record an email. The data is fake and the email stays in a local outbox. I’ll run the same risky shop scenarios directly and through AgntID, then show the actual state and audit evidence.”
 
-**Show:** the project terminal at the repo root. Do not show `.env`.
+**Show:** the dashboard’s local environment status. Keep `.env` and credentials off-screen.
 
 ### 0:25–1:10 | Show the direct path
 
-Run:
+Open the visual dashboard before the presentation:
 
 ```bash
-.venv/bin/python demo.py run
+docker compose up -d --build
 ```
 
-While the output scrolls, explain: “Direct mode sends the model’s tool request straight to the shop. There is no AgntID policy gate on that path.”
+Open `http://127.0.0.1:8501`. Keep all scenarios selected, then click **Run all scenarios**. Expand **Live execution trace** when you want to show model calls, tool decisions, and shop results. Choose one scenario for a shorter run.
+
+For an interactive segment, open **Playground**, select **Price below floor**, and run it. Explain that the same request is sent through both paths, the shop resets between them, the direct call changes the synthetic price, and the AgntID policy rejects the protected call. The playground is exploratory; use **Guided scenarios** when you want built-in pass/fail checks.
+
+Explain: “Direct mode sends the model’s tool request straight to the shop. There is no AgntID policy gate on that path.”
 
 Point out the direct outcomes:
 
@@ -50,7 +54,7 @@ If time allows, open `http://localhost:9000/admin/state` after the comparison. E
 ## Screen order
 
 1. Terminal: run `.venv/bin/python demo.py doctor` before the audience arrives.
-2. Terminal: run `.venv/bin/python demo.py run`.
+2. Docker UI: open `http://127.0.0.1:8501` and run the comparison.
 3. AgntID Reporting: show one policy denial with its input and reason.
 4. Optional: shop state endpoint, clearly label its data synthetic.
 

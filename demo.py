@@ -82,6 +82,7 @@ def main() -> None:
     subparsers = parser.add_subparsers(dest="command", required=True)
     subparsers.add_parser("doctor", help="Check local services and required configuration")
     subparsers.add_parser("run", help="Run all three attacks in both modes")
+    subparsers.add_parser("dashboard", help="Build and open the Docker-hosted demo UI")
     subparsers.add_parser("start", help="Start the Docker Compose services")
     subparsers.add_parser("stop", help="Stop services while preserving demo data")
     args = parser.parse_args()
@@ -96,11 +97,14 @@ def main() -> None:
         from run_compare import main as run_comparison
 
         raise SystemExit(asyncio.run(run_comparison()))
-    if args.command in {"start", "stop"}:
+    if args.command in {"start", "stop", "dashboard"}:
         if not shutil.which("docker"):
             parser.error("Docker Desktop must be installed and available on PATH")
-        command = ["docker", "compose", "up", "-d", "--build"] if args.command == "start" else ["docker", "compose", "down"]
+        command = ["docker", "compose", "down"] if args.command == "stop" else ["docker", "compose", "up", "-d", "--build"]
         subprocess.run(command, cwd=ROOT, check=True)
+        if args.command in {"dashboard", "start"}:
+            port = os.getenv("DEMO_UI_PORT", "8501")
+            print(f"Vend-Safe demo UI: http://127.0.0.1:{port}")
 
 
 if __name__ == "__main__":

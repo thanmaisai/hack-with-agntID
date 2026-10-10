@@ -11,7 +11,7 @@ Direct:  OpenAI model → local agent → Shop MCP server
 AgntID:  OpenAI model → local agent + AgntID SDK → AgntID runtime → Shop MCP server
 ```
 
-The runtime and shop run in Docker Compose. The local Python agent and its OpenAI chat calls run on the Mac. The portal configures the runtime; it does not host the local shop.
+The UI, comparison API, agent, shop, and AgntID runtime run in Docker Compose. The comparison API keeps the OpenAI key server-side. The portal configures the runtime; it does not host the local shop.
 
 ## What each piece does
 
@@ -22,7 +22,9 @@ The runtime and shop run in Docker Compose. The local Python agent and its OpenA
 | `agent.py` | Runs the model/tool loop. Direct mode connects to the shop; AgntID mode opens a task, asks the SDK for relevant tools, and sends calls through the wrapped AgntID client. |
 | `run_compare.py` | Resets the shop between six runs, records state and actual tool-call outcomes, prints the scoreboard, and exits nonzero if a required result is missing. |
 | `demo.py` | Provides `start`, `stop`, `doctor`, and `run` commands. |
-| `docker-compose.yml` | Starts the shop, AgntID runtime, and internal intent-parser service. |
+| `dashboard.py` + `ui/` | API event stream plus React/shadcn-style playground and guided view with Lucide icons. |
+| `Dockerfile.dashboard` | Packages the API, agent, and AgntID SDK for Docker. |
+| `docker-compose.yml` | Starts the UI, API, shop, AgntID runtime, and internal intent-parser service. |
 | `DEMO_FLOW.md` | Earlier short walkthrough. This guide and `DEMO_PRESENTATION.md` are the presenter references. |
 | `PORTAL_SETUP.md` | Detailed portal setup/reference steps. |
 
@@ -82,7 +84,15 @@ The shortlist in this code path is applied by the local SDK/client before the mo
 
 ## How to verify before presenting
 
-From the project directory:
+Build and start the Docker-hosted visual presenter view from the project directory:
+
+```bash
+docker compose up -d --build
+```
+
+Open `http://127.0.0.1:8501`. In **Playground**, enter a shop request or select one of the prompt starters. The same prompt goes through both paths with a shop reset between runs; the API key stays in the backend container and is never sent to the browser. Expand **Live execution trace** to follow the model plan, tool calls, runtime decisions, and shop responses. Use **Guided scenarios** to run the three fixed cases with their expected result checks. Playground is for exploration and does not assign pass/fail to open-ended requests. Prompts go to the configured OpenAI API, so use synthetic data only. Email-like tools only write to the local synthetic outbox.
+
+Before presenting, verify the environment and comparison:
 
 ```bash
 .venv/bin/python demo.py doctor
