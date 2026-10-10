@@ -23,7 +23,7 @@ from dotenv import load_dotenv
 from mcp import ClientSession
 from mcp.client.streamable_http import streamable_http_client
 
-from attacks import ATTACKS, SYSTEM_PROMPT
+from attacks import AGNTID_ATTACKS, ATTACKS, SYSTEM_PROMPT
 
 # Load project-local configuration for direct invocation and `python -m` alike.
 load_dotenv()
@@ -100,6 +100,7 @@ async def _run_model_loop(
     ]
 
     denials = 0
+    calls = []
     max_rounds = 10
 
     print(f"\n[{mode.upper()} | Attack {attack}] Starting agent loop...")
@@ -117,22 +118,51 @@ async def _run_model_loop(
         messages.append(msg.model_dump(exclude_none=True))
 
         if msg.tool_calls:
+            denied_this_round = False
             for tc in msg.tool_calls:
                 fn_name = tc.function.name
                 fn_args = json.loads(tc.function.arguments or "{}")
 
                 print(f"  -> Tool call: {fn_name}({fn_args})")
-                result = await call_tool_fn(fn_name, fn_args)
+                try:
+                    result = await call_tool_fn(fn_name, fn_args)
+                except Exception as exc:
+                    calls.append({"tool": fn_name, "status": "error", "detail": str(exc)})
+                    print(f"  <- ERROR: {exc}")
+                    messages.append({
+                        "role": "tool",
+                        "tool_call_id": tc.id,
+                        "content": f"[TOOL ERROR] {type(exc).__name__}: {exc}",
+                    })
+                    denied_this_round = True
+                    continue
 
                 # Handle AgntID denial
                 if getattr(result, "denied", False):
-                    denials += 1
-                    tool_result_str = f"[DENIED] {result.message}"
-                    print(f"  <- DENIED: {result.message}")
+                    # The runtime may return an execution error while reporting
+                    # that policy allowed the request. Preserve this distinction
+                    # so the scoreboard never calls it a policy denial/pass.
+                    status = (
+                        "inconsistent"
+                        if getattr(result, "inconsistent", False)
+                        else "denied"
+                    )
+                    if status == "denied":
+                        denied_this_round = True
+                        denials += 1
+                        print(f"  <- DENIED: {result.message}")
+                    else:
+                        denied_this_round = True
+                        print(f"  <- RUNTIME ERROR: {result.message}")
+                    prefix = "[DENIED]" if status == "denied" else "[RUNTIME ERROR]"
+                    tool_result_str = f"{prefix} {result.message}"
+                    calls.append({"tool": fn_name, "status": status, "detail": result.message})
                 else:
                     # Scalar or dict result
                     if hasattr(result, "value"):
                         tool_result_str = str(result.value)
+                    elif isinstance(result, dict):
+                        tool_result_str = json.dumps(result, ensure_ascii=False, default=str)
                     elif hasattr(result, "content"):
                         # Raw MCP result
                         parts = []
@@ -145,6 +175,7 @@ async def _run_model_loop(
                     else:
                         tool_result_str = str(result)
                     print(f"  <- Result: {tool_result_str[:200]}")
+                    calls.append({"tool": fn_name, "status": "success"})
 
                 messages.append(
                     {
@@ -153,13 +184,28 @@ async def _run_model_loop(
                         "content": tool_result_str,
                     }
                 )
+            if denied_this_round:
+                answer = "Stopped after a tool call was denied or failed."
+                break
         else:
             # No more tool calls - final answer
             answer = msg.content or ""
             print(f"\nFinal answer: {answer}")
-            return {"denials": denials, "answer": answer}
+            return {
+                "denials": denials,
+                "answer": answer,
+                "calls": calls,
+                "available_tools": [t.name for t in tools],
+                "completed": True,
+            }
 
-    return {"denials": denials, "answer": "[max rounds reached]"}
+    return {
+        "denials": denials,
+        "answer": answer if "answer" in locals() else "[max rounds reached]",
+        "calls": calls,
+        "available_tools": [t.name for t in tools],
+        "completed": False,
+    }
 
 
 async def _create_openai_client() -> openai.AsyncOpenAI:
@@ -207,7 +253,7 @@ async def run_agntid(attack: int) -> dict:
             "https://github.com/AGNTID-AI/agntid-python and its OpenAI extra."
         ) from exc
 
-    prompt = ATTACKS[attack]
+    prompt = AGNTID_ATTACKS[attack]
     access_token = os.getenv("AGNTID_ACCESS_TOKEN") or None
 
     async with agntid.AgntidMCPClient(
@@ -238,7 +284,17 @@ async def run_agntid(attack: int) -> dict:
             )
 
             async def call_tool(name: str, args: dict):
-                return await wrapped.call_tool_async(name, args)
+                result = await wrapped.call_tool_async(name, args)
+                if getattr(result, "denied", False):
+                    detail = agntid.get_last_denial()
+                    if detail and detail.get("outcome") == "allow":
+                        result.inconsistent = True
+                        runtime_error = detail.get("error") or result.message
+                        result.message = (
+                            "AgntID policy allowed the request, but upstream tool execution "
+                            f"failed: {runtime_error}"
+                        )
+                return result
 
             stats = await _run_model_loop(
                 prompt, tools, call_tool, "agntid", attack

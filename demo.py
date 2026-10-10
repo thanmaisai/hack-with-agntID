@@ -95,8 +95,7 @@ def main() -> None:
             parser.error("local services are not ready; run `python demo.py doctor` for details")
         from run_compare import main as run_comparison
 
-        asyncio.run(run_comparison())
-        return
+        raise SystemExit(asyncio.run(run_comparison()))
     if args.command in {"start", "stop"}:
         if not shutil.which("docker"):
             parser.error("Docker Desktop must be installed and available on PATH")

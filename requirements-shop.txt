@@ -1,5 +1,4 @@
-# Pinned deps for the shop MCP server container
-# Generated from: .venv/bin/pip freeze | grep -E "fastmcp|uvicorn|starlette|anyio|sse-starlette"
-fastmcp==4.1.0
-uvicorn==0.54.0
-anyio==4.15.1
+# Keep the shop server on the same FastMCP generation supported by the
+# AgntID runtime's upstream MCP connector and the AgntID Python SDK.
+fastmcp==2.14.7
+uvicorn>=0.31,<1

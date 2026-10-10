@@ -21,7 +21,7 @@ Confirm the `.env` key is set, the shop and runtime are healthy, portal setup is
    .venv/bin/python demo.py run
    ```
 
-   The harness resets the shop for each run. Point out the risky changes in direct mode and the policy/intent denials in AgntID mode.
+   The harness resets the shop for each run. Point out the risky changes in direct mode and the policy denials in AgntID mode. It labels the comparison **INCOMPLETE** and exits unsuccessfully if any expected tool result is missing.
 
 4. **Show evidence:** Open AgntID Reporting and inspect a denied action, its policy reason, and correlation details. The shop state is available at `http://localhost:9000/admin/state`.
 5. **Close:** “Tool discovery narrows what the agent can request; policy checks enforce allowed inputs before a tool runs; Reporting gives us an audit trail.”
@@ -30,9 +30,9 @@ Confirm the `.env` key is set, the shop and runtime are healthy, portal setup is
 
 - Attack 1 direct applies an unsafe discount; AgntID denies a discount over 20%.
 - Attack 2 direct can place an oversized order or set an unsafe price; AgntID denies quantities above 10 and prices outside `$1.50`–`$25.00`.
-- Attack 3 direct may follow the poisoned quote and record an email to the outside address in the local outbox. AgntID should not expose `send_email` and should prevent roster exfiltration.
+- Attack 3 direct follows the poisoned quote and records an email to the outside address in the local outbox. In AgntID mode, the prompt explicitly treats supplier instructions as untrusted data; the quote is still returned with its instruction text, while inventory and email tools are absent from the task-specific shortlist. This demonstrates the tool boundary, not filtering of returned text.
 
-LLM tool selection can vary. If a direct-mode attack does not trigger the expected action, inspect the printed tool trace and rerun that scenario. Never claim a scoreboard outcome that the run did not show.
+LLM tool selection can vary. The harness checks actual tool calls and shop state, not just a final balance. If a direct-mode attack does not trigger the expected action, inspect the printed tool trace and rerun that scenario. Never claim a scoreboard outcome that the run did not show.
 
 ## Short single-scenario version
 

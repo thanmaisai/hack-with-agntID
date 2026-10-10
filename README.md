@@ -14,7 +14,7 @@ one-time setup → add your local API key → start services → readiness check
 |---|---|---|
 | CEO discount request | Applies a 100% discount | Policy caps discounts at 20% |
 | Loss-making bulk order | Can order 100 items and set a very low price | Quantity and price limits deny unsafe inputs |
-| Poisoned supplier quote | Can retrieve the synthetic roster and write an external address to the local outbox | Runtime intent/tool controls keep the email action unavailable |
+| Poisoned supplier quote | Can retrieve the synthetic roster and write an external address to the local outbox | The quote remains untrusted data; task-specific tool selection keeps inventory/email outside the task shortlist, and the demo prompt tells the agent not to follow quote instructions |
 
 Emails are recorded only in the local shop outbox. The demo uses synthetic data. Prompts and tool results are sent to the configured OpenAI API for model calls.
 
@@ -29,7 +29,7 @@ shop_server.py       Synthetic shop MCP tools and local admin endpoints
 docker-compose.yml   Shop, AgntID runtime, intent parser, and persistent volumes
 Dockerfile           Isolated shop server image
 requirements.txt     Local Python agent dependencies
-requirements-shop.txt Shop container dependencies
+requirements-shop.txt Shop container dependencies (FastMCP 2.14.x for runtime compatibility)
 .env.example         Safe configuration template; copy to ignored .env
 PORTAL_SETUP.md      AgntID portal configuration and verification guide
 resources/           Project plan and AgntID reference material
@@ -83,7 +83,7 @@ Once `doctor` reports ready:
 .venv/bin/python demo.py run
 ```
 
-This resets the synthetic shop before each scenario, runs all three attacks first directly and then through AgntID, and prints a scoreboard plus expected-outcome checks. It makes six model runs, so it uses your configured model API quota. To show one run at a time:
+This resets the synthetic shop before each scenario, runs all three attacks first directly and then through AgntID, and prints a scoreboard plus tool-level outcome checks. It makes six model runs, so it uses your configured model API quota. The process exits unsuccessfully and marks the comparison **INCOMPLETE** if any expected tool result is missing. To show one run at a time:
 
 ```bash
 .venv/bin/python agent.py --mode direct --attack 1
@@ -122,6 +122,7 @@ curl -X POST http://localhost:9000/admin/reset
 
 ## Troubleshooting
 
+- **The protected quote reports “policy allowed” but still errors:** check the terminal detail and Reporting. This project pins the shop to FastMCP 2.14.x because the AgntID runtime fails on FastMCP 4 payloads; rebuild it with `docker compose up -d --build shop`.
 - **`doctor` says shop/runtime unavailable:** run `docker compose ps`; start with `demo.py start`, inspect logs, and wait for healthy status. The runtime health check tries both `/health` and `/` and prints the connection error.
 - **OpenAI key missing:** edit `.env`, then rerun `demo.py doctor`. Do not share the secret.
 - **AgntID mode cannot connect:** confirm runtime health at `http://localhost:8080/health`, MCP at `http://localhost:8082/mcp`, and portal sync status. Set `AGNTID_ACCESS_TOKEN` only if OAuth is enabled for this endpoint.

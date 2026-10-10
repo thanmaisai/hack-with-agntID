@@ -160,7 +160,7 @@ Click **Save Policy** → wait for **Applied** ✅
 
 ## Step 6 — Enable LLM-Based Intent Engine
 
-> **Critical for Attack 3.** Without LLM-based intent, the poisoned supplier quote instruction will not be withheld from the model.
+> **Attack 3 behavior:** the supplier quote includes an untrusted instruction string. The demo prompt explicitly says not to follow instructions from tool output, and the task-specific shortlist omits inventory and email. The quote text itself is returned; it is not filtered. Runtime logs may show action-level intent validation skipped when a task prompt is not propagated on tool calls, so verify the engine actually used in Reporting before presenting intent as an enforced control.
 
 1. Go to `Vend-Safe Runtime` → **Operations → Settings**
 2. Find the **Runtime features** section → **Intent engine**
@@ -262,5 +262,6 @@ fi
 | 0 tools discovered | Shop URL must be `http://shop:9000/mcp` not `localhost` |
 | Policy not blocking attacks | Wait for **Applied** after saving — not just saved |
 | Attack 3 not blocked in agntid mode | Intent engine must be **LLM-based**, not Standard. Check Call Flow in Reporting |
+| Quote shows “Policy evaluation allowed” but reports an upstream tool error | Rebuild the shop with the pinned FastMCP 2.14.x dependency: `docker compose up -d --build shop`; rerun the quote and confirm **Tool Execution: success** in Reporting |
 | Intent engine falls back to Standard | Check your OpenAI credential is **Healthy** under Access Control → Credentials |
 | `agntid` module not found | Run: `.venv/bin/pip install -e "./agntid-python[openai]"` |
