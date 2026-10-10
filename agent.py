@@ -22,7 +22,6 @@ import openai
 from mcp import ClientSession
 from mcp.client.streamable_http import streamable_http_client
 
-import agntid
 from attacks import ATTACKS, SYSTEM_PROMPT
 
 # ---------------------------------------------------------------------------
@@ -34,6 +33,7 @@ USER_ID = "user-42"
 
 SHOP_MCP_URL = os.getenv("SHOP_MCP_URL", "http://localhost:9000/mcp")
 AGNTID_MCP_URL = os.getenv("AGNTID_MCP_URL", "http://localhost:8082/mcp")
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 
 
 # ---------------------------------------------------------------------------
@@ -45,13 +45,16 @@ def _tools_to_openai(tools) -> list[dict]:
     """Convert MCP tool objects to OpenAI function definitions."""
     result = []
     for t in tools:
-        schema = t.inputSchema if hasattr(t, "inputSchema") else {}
+        schema = getattr(t, "inputSchema", None) or {
+            "type": "object",
+            "properties": {},
+        }
         result.append(
             {
                 "type": "function",
                 "function": {
                     "name": t.name,
-                    "description": t.description or "",
+                    "description": getattr(t, "description", "") or "",
                     "parameters": schema,
                 },
             }
@@ -84,7 +87,7 @@ async def _run_model_loop(
     Returns:
         dict with keys: denials (int), answer (str)
     """
-    client = openai.AsyncOpenAI()
+    client = await _create_openai_client()
     openai_tools = _tools_to_openai(tools)
 
     messages = [
@@ -100,7 +103,7 @@ async def _run_model_loop(
 
     for _round in range(max_rounds):
         response = await client.chat.completions.create(
-            model="gpt-4o-mini",
+            model=OPENAI_MODEL,
             messages=messages,
             tools=openai_tools if openai_tools else openai.NOT_GIVEN,
             temperature=0,
@@ -155,6 +158,13 @@ async def _run_model_loop(
     return {"denials": denials, "answer": "[max rounds reached]"}
 
 
+async def _create_openai_client() -> openai.AsyncOpenAI:
+    """Build the OpenAI client only when a run starts, with a clear key error."""
+    if not os.getenv("OPENAI_API_KEY"):
+        raise RuntimeError("OPENAI_API_KEY is required to run the agent")
+    return openai.AsyncOpenAI()
+
+
 # ---------------------------------------------------------------------------
 # Direct mode
 # ---------------------------------------------------------------------------
@@ -185,6 +195,14 @@ async def run_direct(attack: int) -> dict:
 
 async def run_agntid(attack: int) -> dict:
     """Run attack through the AgntID runtime (enforced mode)."""
+    try:
+        import agntid
+    except ImportError as exc:
+        raise RuntimeError(
+            "AgntID mode requires the AgntID Python SDK. Install it from "
+            "https://github.com/AGNTID-AI/agntid-python and its OpenAI extra."
+        ) from exc
+
     prompt = ATTACKS[attack]
     access_token = os.getenv("AGNTID_ACCESS_TOKEN") or None
 
@@ -247,10 +265,15 @@ def main():
     )
     args = parser.parse_args()
 
-    if args.mode == "direct":
-        stats = asyncio.run(run_direct(args.attack))
-    else:
-        stats = asyncio.run(run_agntid(args.attack))
+    try:
+        if args.mode == "direct":
+            stats = asyncio.run(run_direct(args.attack))
+        else:
+            stats = asyncio.run(run_agntid(args.attack))
+    except KeyboardInterrupt:
+        raise
+    except Exception as exc:
+        parser.exit(1, f"Error: {exc}\n")
 
     print(f"\nDenials: {stats['denials']}")
 

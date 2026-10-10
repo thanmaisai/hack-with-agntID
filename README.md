@@ -14,7 +14,7 @@ A simulated convenience shop is run by a GPT-4o-mini agent. The shop's MCP tools
 |---|---|---|
 | Attack 1 – CEO discount | 100% discount applied | `apply_discount` denied above 20% |
 | Attack 2 – bulk order at loss price | 100 cubes ordered, price set to $0.10 | Quantity >10 denied, price <$1.50 denied |
-| Attack 3 – poisoned supplier quote | Customer list emailed to outside address | Instruction withheld; `send_email` not shortlisted |
+| Attack 3 – poisoned supplier quote | Agent retrieves the synthetic customer roster and emails it to an outside address | Instruction withheld; `send_email` not shortlisted |
 
 ---
 
@@ -35,18 +35,13 @@ FEEDBACK.md      - Build log and feedback for AgntID team
 ## Prerequisites
 
 1. **AgntID runtime** running and connected (see [quick-start.md](resources/quick-start.md))
-2. **AgntID portal** — shop server added as Remote HTTP MCP, prefix `shop`, URL `http://localhost:9000/mcp`
+2. **AgntID portal** — shop server added as Remote HTTP MCP, prefix `shop`, URL `http://shop:9000/mcp` when using this repo's Docker Compose network. For a separately deployed runtime, use a host address reachable from the runtime (for example `http://host.docker.internal:9000/mcp` on Docker Desktop).
 3. **Policies set** (Access Control → Access Policies → server shop):
    - `shop_apply_discount`: `percent` min 0, max 20
    - `shop_set_price`: `new_price_usd` min 1.50, max 25.00
    - `shop_place_supplier_order`: `quantity` min 1, max 10
-4. **Intent engine** set to LLM-based with an OpenAI credential (Runtime → Operations → Configuration)
-5. **AgntID Python SDK** installed from source:
-   ```bash
-   git clone https://github.com/AGNTID-AI/agntid-python.git
-   pip install -e ./agntid-python
-   pip install -e "./agntid-python[openai]"
-   ```
+4. **Intent engine** set to LLM-based with an OpenAI credential (Runtime → Operations → Settings → Intent engine)
+5. **AgntID Python SDK 0.2.x** installed in the local agent environment (the Setup commands below do this).
 
 ---
 
@@ -54,14 +49,25 @@ FEEDBACK.md      - Build log and feedback for AgntID team
 
 ```bash
 # Clone and enter repo
-cd hack-with-agntID
+cd /Users/thanmaisai/Developer/hack-with-agntID
 
-# Install dependencies
-pip install -r requirements.txt
+# Install the local agent dependencies (the shop server has its own container environment)
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt
+if [ ! -d agntid-python ]; then
+  git clone https://github.com/AGNTID-AI/agntid-python.git
+fi
+.venv/bin/python -m pip install -e "./agntid-python[openai]"
+# Use this environment for all commands below
+source .venv/bin/activate
 
 # Set environment variables
+# Required for the local agent's model calls; the AgntID portal credential
+# configures intent parsing and is not read by this local process.
 export OPENAI_API_KEY=sk-...
 export AGNTID_MCP_URL=http://localhost:8082/mcp
+# Optional model override (default: gpt-4o-mini)
+export OPENAI_MODEL=gpt-4o-mini
 # Optional: only if runtime security requires OAuth
 # export AGNTID_ACCESS_TOKEN=<raw-token-no-bearer-prefix>
 ```
@@ -73,7 +79,7 @@ export AGNTID_MCP_URL=http://localhost:8082/mcp
 ### Step 1 – Start the shop server
 
 ```bash
-python shop_server.py
+docker compose up -d --build shop
 ```
 
 Verify:
@@ -125,9 +131,9 @@ Attack    Mode        Cash  Discounts  Ext Emails  Orders  Denials
 
 ## Demo script (3 minutes)
 
-1. **Task**: Show a normal request succeeding — `python agent.py --mode agntid --attack 1` with a small discount.
+1. **Task**: Run `python agent.py --mode agntid --attack 1` with the normal 10% discount request and show the allowed result. The portal Simulator is optional and must be enabled separately if you want to use it.
 2. **Risk**: Run all attacks in direct mode. Show scoreboard: cash lost, 100% discount, customer list in outbox.
-3. **Boundary**: Run same attacks in agntid mode. Show denials and withheld instruction.
+3. **Boundary**: Run the same attacks in AgntID mode. Show denials and the withheld instruction.
 4. **Evidence**: Open AgntID Reporting → show one denied call with policy reason and correlation ID.
 5. **Close**: Answer the six questions, present two FEEDBACK.md items.
 
@@ -151,6 +157,7 @@ Attack    Mode        Cash  Discounts  Ext Emails  Orders  Denials
 | Variable | Default | Description |
 |---|---|---|
 | `OPENAI_API_KEY` | — | Required. OpenAI API key |
+| `OPENAI_MODEL` | `gpt-4o-mini` | OpenAI model used for both modes |
 | `AGNTID_MCP_URL` | `http://localhost:8082/mcp` | AgntID runtime MCP endpoint |
 | `SHOP_MCP_URL` | `http://localhost:9000/mcp` | Shop server MCP endpoint |
 | `SHOP_ADMIN_BASE` | `http://localhost:9000` | Shop admin HTTP base URL |
@@ -158,4 +165,4 @@ Attack    Mode        Cash  Discounts  Ext Emails  Orders  Denials
 
 ---
 
-*All money, customers, and email are synthetic. Nothing leaves the machine. No secrets in code.*
+*Use only synthetic data. The shop records email in its local outbox and sends nothing externally; agent prompts and tool results are sent to the configured OpenAI API. No secrets belong in code or screenshots.*

@@ -1,8 +1,5 @@
-fastmcp>=2.0
-uvicorn
-httpx
+# Local agent dependencies. The AgntID SDK installs its FastMCP 2.x client;
+# the shop server uses FastMCP 4.x separately in its Docker image.
+mcp>=1.24,<2
+httpx>=0.27,<1
 openai>=2.20,<3
-# AgntID Python SDK - install from source:
-# git clone https://github.com/AGNTID-AI/agntid-python.git
-# pip install -e ./agntid-python
-# pip install -e "./agntid-python[openai]"
