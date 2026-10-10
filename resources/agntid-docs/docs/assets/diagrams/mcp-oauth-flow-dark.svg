@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 430" role="img" aria-labelledby="title desc" font-family="'IBM Plex Sans',-apple-system,BlinkMacSystemFont,sans-serif">
+  <title id="title">OAuth boundaries for MCP access</title>
+  <desc id="desc">An MCP client signs in with an identity provider and presents a token to the AgntID runtime. The runtime verifies identity, filters tools, checks policy, and uses a separately configured method to reach an external MCP server.</desc>
+  <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0l8 4-8 4z" fill="#94a3b8"/></marker></defs>
+  <rect width="1200" height="430" rx="18" fill="#0f172a"/>
+  <text x="35" y="34" font-size="13" font-weight="700" fill="#c4b5fd">CLIENT ACCESS — OAUTH</text>
+  <rect x="35" y="58" width="250" height="130" rx="16" fill="#1e293b" stroke="#a78bfa" stroke-width="2"/>
+  <text x="160" y="93" text-anchor="middle" font-size="18" font-weight="700" fill="#ddd6fe">MCP client</text>
+  <text x="160" y="120" text-anchor="middle" font-size="13" fill="#ede9fe">Cursor · Claude · Codex</text><text x="160" y="148" text-anchor="middle" font-size="13" fill="#ede9fe">requests sign-in and sends token</text>
+  <rect x="475" y="58" width="250" height="130" rx="16" fill="#1e293b" stroke="#818cf8" stroke-width="2"/>
+  <text x="600" y="93" text-anchor="middle" font-size="18" font-weight="700" fill="#c7d2fe">Identity provider</text>
+  <text x="600" y="120" text-anchor="middle" font-size="13" fill="#e0e7ff">signs in the user</text><text x="600" y="148" text-anchor="middle" font-size="13" fill="#e0e7ff">issues an OAuth token</text>
+  <rect x="915" y="58" width="250" height="300" rx="16" fill="#1e293b" stroke="#2dd4bf" stroke-width="2"/>
+  <text x="1040" y="93" text-anchor="middle" font-size="18" font-weight="700" fill="#99f6e4">AgntID runtime</text>
+  <g fill="#134e4a" stroke="#14b8a6"><rect x="943" y="116" width="194" height="48" rx="9"/><rect x="943" y="182" width="194" height="48" rx="9"/><rect x="943" y="248" width="194" height="48" rx="9"/></g>
+  <g fill="#f0fdfa" text-anchor="middle" font-size="13" font-weight="600"><text x="1040" y="145">verify token + roles</text><text x="1040" y="211">filter available tools</text><text x="1040" y="277">check policy on each call</text></g>
+  <g stroke="#94a3b8" stroke-width="2" fill="none" marker-end="url(#arrow)"><path d="M285 95h186"/><path d="M475 155H289"/><path d="M285 170C520 250 700 215 911 170"/></g>
+  <text x="380" y="84" text-anchor="middle" font-size="12" fill="#cbd5e1">sign in</text><text x="380" y="174" text-anchor="middle" font-size="12" fill="#cbd5e1">token</text><text x="600" y="234" text-anchor="middle" font-size="12" fill="#cbd5e1">MCP request + token</text>
+  <text x="35" y="262" font-size="13" font-weight="700" fill="#fde68a">SERVER CONNECTION — SEPARATE SETTING</text>
+  <rect x="35" y="286" width="690" height="92" rx="16" fill="#1e293b" stroke="#fbbf24" stroke-width="2"/>
+  <text x="380" y="319" text-anchor="middle" font-size="17" font-weight="700" fill="#fde68a">External MCP server</text>
+  <text x="380" y="347" text-anchor="middle" font-size="13" fill="#fef3c7">no auth · bearer token · static key · OAuth token passthrough</text>
+  <path d="M915 324H729" stroke="#94a3b8" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <text x="822" y="312" text-anchor="middle" font-size="12" fill="#cbd5e1">allowed tool call</text>
+  <text x="600" y="412" text-anchor="middle" font-size="13" font-weight="600" fill="#cbd5e1">Configure and verify each connection independently.</text>
+</svg>

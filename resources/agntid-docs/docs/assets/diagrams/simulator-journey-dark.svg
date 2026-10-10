@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" role="img" aria-labelledby="title desc" font-family="'IBM Plex Sans',-apple-system,BlinkMacSystemFont,sans-serif">
+  <title id="title">Simulator test journey</title>
+  <desc id="desc">Prepare a runtime, connect the Simulator, send a request, then follow an allowed or denied path and review the evidence.</desc>
+  <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0l8 4-8 4z" fill="#94a3b8"/></marker></defs>
+  <rect width="1200" height="300" rx="18" fill="#0f172a"/>
+  <text x="36" y="36" font-size="13" font-weight="700" fill="#5eead4">SIMULATOR TEST</text>
+  <g fill="#1e293b" stroke="#2dd4bf" stroke-width="2"><rect x="36" y="60" width="190" height="82" rx="12"/><rect x="278" y="60" width="190" height="82" rx="12"/><rect x="520" y="60" width="190" height="82" rx="12"/></g>
+  <g fill="#f1f5f9" text-anchor="middle"><text x="131" y="94" font-size="17" font-weight="700">Prepare</text><text x="131" y="119" font-size="13">runtime + credential</text><text x="373" y="94" font-size="17" font-weight="700">Connect</text><text x="373" y="119" font-size="13">start a session</text><text x="615" y="94" font-size="17" font-weight="700">Send a request</text><text x="615" y="119" font-size="13">plain English</text></g>
+  <g stroke="#94a3b8" stroke-width="2" fill="none" marker-end="url(#arrow)"><path d="M226 101h48"/><path d="M468 101h48"/><path d="M710 101h68"/></g>
+  <path d="M778 101h42v-35h44" stroke="#94a3b8" stroke-width="2" fill="none" marker-end="url(#arrow)"/><path d="M778 101h42v84h44" stroke="#94a3b8" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <rect x="868" y="34" width="190" height="70" rx="12" fill="#064e3b" stroke="#34d399" stroke-width="2"/><rect x="868" y="150" width="190" height="70" rx="12" fill="#7c2d12" stroke="#fb923c" stroke-width="2"/>
+  <text x="963" y="66" text-anchor="middle" font-size="17" font-weight="700" fill="#d1fae5">Allowed</text><text x="963" y="88" text-anchor="middle" font-size="13" fill="#d1fae5">tool runs</text><text x="963" y="182" text-anchor="middle" font-size="17" font-weight="700" fill="#ffedd5">Denied</text><text x="963" y="204" text-anchor="middle" font-size="13" fill="#ffedd5">tool is blocked</text>
+  <path d="M1058 69h62v79" stroke="#94a3b8" stroke-width="2" fill="none"/><path d="M1058 185h62v-37" stroke="#94a3b8" stroke-width="2" fill="none"/><path d="M1120 148v47" stroke="#94a3b8" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <rect x="1025" y="226" width="150" height="52" rx="12" fill="#312e81" stroke="#818cf8" stroke-width="2"/><text x="1100" y="248" text-anchor="middle" font-size="15" font-weight="700" fill="#e0e7ff">Review</text><text x="1100" y="267" text-anchor="middle" font-size="12" fill="#e0e7ff">result + evidence</text>
+</svg>

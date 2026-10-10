@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 260" font-family="'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif">
+  <rect width="220" height="260" fill="none"/>
+  <!-- MCP Server -->
+  <rect x="10" y="16" width="200" height="48" rx="8" fill="#f1f5f9" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="110" y="46" text-anchor="middle" font-size="12" font-weight="600" fill="#0b1b2b">MCP Server</text>
+  <!-- Arrow 1 down -->
+  <line x1="110" y1="64" x2="110" y2="78" stroke="#94a3b8" stroke-width="1.5"/>
+  <polygon points="110,86 105,76 115,76" fill="#94a3b8"/>
+  <text x="110" y="100" text-anchor="middle" font-size="9" fill="#475569">attach via mcp-servers.yaml</text>
+  <!-- AgntID Runtime (MCP Proxy) -->
+  <rect x="10" y="108" width="200" height="48" rx="8" fill="#f1f5f9" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="110" y="133" text-anchor="middle" font-size="12" font-weight="600" fill="#0b1b2b">AgntID Runtime</text>
+  <text x="110" y="148" text-anchor="middle" font-size="10" fill="#475569">(MCP Proxy)</text>
+  <!-- Arrow 2 down -->
+  <line x1="110" y1="156" x2="110" y2="172" stroke="#94a3b8" stroke-width="1.5"/>
+  <polygon points="110,180 105,170 115,170" fill="#94a3b8"/>
+  <!-- Portal / MCP Inspector / SDK -->
+  <rect x="10" y="188" width="200" height="60" rx="8" fill="#f1f5f9" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="110" y="213" text-anchor="middle" font-size="12" font-weight="600" fill="#0b1b2b">Portal / MCP Inspector / SDK</text>
+  <text x="110" y="230" text-anchor="middle" font-size="10" fill="#475569">(use tools)</text>
+</svg>

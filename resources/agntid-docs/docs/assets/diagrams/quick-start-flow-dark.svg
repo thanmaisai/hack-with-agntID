@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 250" role="img" aria-labelledby="title desc" font-family="'IBM Plex Sans',-apple-system,BlinkMacSystemFont,sans-serif">
+  <title id="title">Quick Start enforcement journey</title>
+  <desc id="desc">Runtime setup, profile review, demo tool availability, input policy, Simulator allowed call, Simulator denied call, and Reporting audit form the required path. MCP Inspector is an optional branch for raw MCP debugging.</desc>
+  <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#94a3b8"/></marker></defs>
+  <rect width="1400" height="250" rx="16" fill="#0f172a"/>
+  <text x="30" y="30" font-size="13" font-weight="700" fill="#2dd4bf">REQUIRED PATH</text>
+  <rect x="30" y="48" width="170" height="70" rx="10" fill="#1e293b" stroke="#2dd4bf" stroke-width="2"/>
+  <text x="115" y="78" fill="#f1f5f9" text-anchor="middle" font-size="15" font-weight="700">Runtime setup</text>
+  <text x="115" y="99" fill="#f1f5f9" text-anchor="middle" font-size="12">deploy · register · connect</text>
+  <path d="M200 83 H221" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="225" y="48" width="170" height="70" rx="10" fill="#1e293b" stroke="#2dd4bf" stroke-width="2"/>
+  <text x="310" y="78" fill="#f1f5f9" text-anchor="middle" font-size="15" font-weight="700">Profile review</text>
+  <text x="310" y="99" fill="#f1f5f9" text-anchor="middle" font-size="12">Medium · 5 of 5 · Applied</text>
+  <path d="M395 83 H416" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="420" y="48" width="170" height="70" rx="10" fill="#1e293b" stroke="#2dd4bf" stroke-width="2"/>
+  <text x="505" y="78" fill="#f1f5f9" text-anchor="middle" font-size="15" font-weight="700">Demo tool available</text>
+  <text x="505" y="99" fill="#f1f5f9" text-anchor="middle" font-size="12">demo.add_numbers</text>
+  <path d="M590 83 H611" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="615" y="48" width="170" height="70" rx="10" fill="#1e293b" stroke="#2dd4bf" stroke-width="2"/>
+  <text x="700" y="78" fill="#f1f5f9" text-anchor="middle" font-size="15" font-weight="700">Input policy</text>
+  <text x="700" y="99" fill="#f1f5f9" text-anchor="middle" font-size="12">10–20 and 20–30</text>
+  <path d="M785 83 H806" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="810" y="48" width="170" height="70" rx="10" fill="#1e293b" stroke="#2dd4bf" stroke-width="2"/>
+  <text x="895" y="78" fill="#f1f5f9" text-anchor="middle" font-size="15" font-weight="700">Simulator allowed</text>
+  <text x="895" y="99" fill="#f1f5f9" text-anchor="middle" font-size="12">11 + 21 → 32</text>
+  <path d="M980 83 H1001" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="1005" y="48" width="170" height="70" rx="10" fill="#1e293b" stroke="#2dd4bf" stroke-width="2"/>
+  <text x="1090" y="78" fill="#f1f5f9" text-anchor="middle" font-size="15" font-weight="700">Simulator denied</text>
+  <text x="1090" y="99" fill="#f1f5f9" text-anchor="middle" font-size="12">50 + 21 → blocked</text>
+  <path d="M1175 83 H1196" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="1200" y="48" width="170" height="70" rx="10" fill="#1e293b" stroke="#2dd4bf" stroke-width="2"/>
+  <text x="1285" y="78" fill="#f1f5f9" text-anchor="middle" font-size="15" font-weight="700">Reporting audit</text>
+  <text x="1285" y="99" fill="#f1f5f9" text-anchor="middle" font-size="12">verify success + denial</text>
+  <path d="M700 118 V172" fill="none" stroke="#c4b5fd" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="570" y="176" width="260" height="52" rx="10" fill="#2e1065" stroke="#c4b5fd" stroke-width="2"/>
+  <text x="700" y="197" text-anchor="middle" font-size="13" font-weight="700" fill="#c4b5fd">Optional: MCP Inspector</text>
+  <text x="700" y="217" text-anchor="middle" font-size="12" fill="#c4b5fd">raw MCP debugging · same policy</text>
+</svg>

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 330" role="img" aria-labelledby="title desc" font-family="'IBM Plex Sans',-apple-system,BlinkMacSystemFont,sans-serif">
+  <title id="title">Protected SDK request flow</title>
+  <desc id="desc">A user request opens an AgntID task. An agent selects from the profile-filtered tool list. The runtime checks the tool call. Allowed calls run and denied calls stop. Both outcomes are reported before the task closes.</desc>
+  <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0l8 4-8 4z" fill="#64748b"/></marker></defs>
+  <rect width="1200" height="330" rx="18" fill="#f8fafc"/>
+  <text x="36" y="35" font-size="13" font-weight="700" fill="#0f766e">ONE USER REQUEST</text>
+  <g fill="#fff" stroke-width="2">
+    <rect x="36" y="62" width="172" height="86" rx="14" stroke="#16a34a"/>
+    <rect x="250" y="62" width="172" height="86" rx="14" stroke="#0d9488"/>
+    <rect x="464" y="62" width="208" height="86" rx="14" stroke="#0d9488"/>
+    <rect x="714" y="62" width="190" height="86" rx="14" stroke="#f59e0b"/>
+  </g>
+  <g text-anchor="middle" fill="#0f172a">
+    <text x="122" y="94" font-size="16" font-weight="700">Open task</text><text x="122" y="119" font-size="12">agent + user + prompt</text>
+    <text x="336" y="94" font-size="16" font-weight="700">See tools</text><text x="336" y="119" font-size="12">profile-filtered list</text>
+    <text x="568" y="94" font-size="16" font-weight="700">Call a tool</text><text x="568" y="119" font-size="12">task correlation added</text>
+    <text x="809" y="94" font-size="16" font-weight="700">Runtime check</text><text x="809" y="119" font-size="12">intent + policy + inputs</text>
+  </g>
+  <g stroke="#64748b" stroke-width="2" fill="none" marker-end="url(#arrow)"><path d="M208 105h38"/><path d="M422 105h38"/><path d="M672 105h38"/></g>
+  <rect x="962" y="38" width="202" height="94" rx="14" fill="#f0fdf4" stroke="#22c55e" stroke-width="2"/>
+  <text x="1063" y="70" text-anchor="middle" font-size="16" font-weight="700" fill="#166534">Allowed</text><text x="1063" y="94" text-anchor="middle" font-size="12" fill="#14532d">run MCP tool</text><text x="1063" y="113" text-anchor="middle" font-size="12" fill="#14532d">return clean result</text>
+  <rect x="962" y="166" width="202" height="94" rx="14" fill="#fff7ed" stroke="#f97316" stroke-width="2"/>
+  <text x="1063" y="198" text-anchor="middle" font-size="16" font-weight="700" fill="#9a3412">Denied</text><text x="1063" y="222" text-anchor="middle" font-size="12" fill="#7c2d12">stop the action</text><text x="1063" y="241" text-anchor="middle" font-size="12" fill="#7c2d12">return the reason</text>
+  <g stroke="#64748b" stroke-width="2" fill="none" marker-end="url(#arrow)"><path d="M904 92h54"/><path d="M904 119c30 0 24 94 54 94"/></g>
+  <rect x="464" y="218" width="440" height="70" rx="14" fill="#fff" stroke="#8b5cf6" stroke-width="2"/>
+  <text x="684" y="247" text-anchor="middle" font-size="16" font-weight="700" fill="#5b21b6">Report the outcome and close the task</text>
+  <text x="684" y="271" text-anchor="middle" font-size="12" fill="#6d28d9">policy result · task ID · correlation ID · audit evidence</text>
+  <g stroke="#64748b" stroke-width="2" fill="none" marker-end="url(#arrow)"><path d="M1063 132c0 78-54 121-155 121"/><path d="M962 229c-24 0-24 24-54 24"/></g>
+</svg>

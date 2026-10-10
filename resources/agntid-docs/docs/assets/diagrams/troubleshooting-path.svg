@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 430" role="img" aria-labelledby="title desc" font-family="'IBM Plex Sans',-apple-system,BlinkMacSystemFont,sans-serif">
+  <title id="title">AgntID troubleshooting path</title>
+  <desc id="desc">Check Docker services, runtime connection, Setup and synchronization, tool visibility, the selected test client, and Reporting in order.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#64748b"/></marker>
+  </defs>
+  <rect width="1000" height="430" rx="18" fill="#f8fafc"/>
+  <text x="40" y="42" font-size="15" font-weight="700" fill="#0f766e">CHECK FROM THE FOUNDATION UP</text>
+  <g fill="#ffffff" stroke="#0d9488" stroke-width="2">
+    <rect x="40" y="68" width="270" height="112" rx="12"/><rect x="365" y="68" width="270" height="112" rx="12"/><rect x="690" y="68" width="270" height="112" rx="12"/>
+    <rect x="40" y="248" width="270" height="112" rx="12"/><rect x="365" y="248" width="270" height="112" rx="12"/><rect x="690" y="248" width="270" height="112" rx="12"/>
+  </g>
+  <g fill="#0f172a" text-anchor="middle">
+    <text x="175" y="105" font-size="19" font-weight="700">1. Docker services</text><text x="175" y="135" font-size="15">both services healthy</text><text x="175" y="158" font-size="15">correct images and ports</text>
+    <text x="500" y="105" font-size="19" font-weight="700">2. Runtime connection</text><text x="500" y="135" font-size="15">local UI Operational</text><text x="500" y="158" font-size="15">portal shows Connected</text>
+    <text x="825" y="105" font-size="19" font-weight="700">3. Setup and sync</text><text x="825" y="135" font-size="15">5 of 5 complete</text><text x="825" y="158" font-size="15">latest change Applied</text>
+    <text x="175" y="285" font-size="19" font-weight="700">4. Tool visibility</text><text x="175" y="315" font-size="15">profile and review</text><text x="175" y="338" font-size="15">server, state, and roles</text>
+    <text x="500" y="285" font-size="19" font-weight="700">5. Test path</text><text x="500" y="315" font-size="15">Inspector, Simulator,</text><text x="500" y="338" font-size="15">or the actual MCP client</text>
+    <text x="825" y="285" font-size="19" font-weight="700">6. Reporting</text><text x="825" y="315" font-size="15">find the decision</text><text x="825" y="338" font-size="15">use the correlation ID</text>
+  </g>
+  <g fill="none" stroke="#64748b" stroke-width="2.5" marker-end="url(#arrow)">
+    <path d="M310 124 H358"/><path d="M635 124 H683"/><path d="M825 180 V215 H175 V241"/><path d="M310 304 H358"/><path d="M635 304 H683"/>
+  </g>
+  <text x="500" y="402" text-anchor="middle" font-size="14" fill="#475569">Fix the first failed check, then test the same path again.</text>
+</svg>

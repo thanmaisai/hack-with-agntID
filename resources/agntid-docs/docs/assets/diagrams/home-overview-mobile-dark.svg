@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 680" role="img" aria-labelledby="title desc" font-family="'IBM Plex Sans',-apple-system,BlinkMacSystemFont,sans-serif">
+  <title id="title">How AgntID protects tool access</title>
+  <desc id="desc">The AgntID portal synchronizes access settings to a customer-hosted runtime and receives events. Clients and applications connect to the runtime, which filters tools, checks calls, and forwards allowed calls to MCP servers.</desc>
+  <defs>
+    <filter id="shadow" x="-8%" y="-8%" width="116%" height="120%"><feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000" flood-opacity="0.35"/></filter>
+    <marker id="arrow" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="7" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 4L0 8Z" fill="#94a3b8"/></marker>
+    <marker id="arrowTeal" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="7" markerHeight="6" orient="auto"><path d="M0 0L10 4L0 8Z" fill="#2dd4bf"/></marker>
+  </defs>
+  <rect width="360" height="680" rx="18" fill="#0b1118"/>
+
+  <g filter="url(#shadow)">
+    <rect x="18" y="18" width="324" height="132" rx="16" fill="#111827" stroke="#2dd4bf" stroke-width="2"/>
+    <text x="180" y="50" text-anchor="middle" font-size="19" font-weight="700" fill="#e6edf3">AgntID portal</text>
+    <text x="180" y="72" text-anchor="middle" font-size="12" fill="#94a3b8">Configure access and review results</text>
+    <g fill="#112c2c" stroke="#2dd4bf"><rect x="34" y="94" width="106" height="34" rx="8"/><rect x="148" y="94" width="70" height="34" rx="8"/><rect x="226" y="94" width="100" height="34" rx="8"/></g>
+    <g text-anchor="middle" font-size="11" font-weight="600" fill="#99f6e4"><text x="87" y="116">Protection profile</text><text x="183" y="116">Policies</text><text x="276" y="116">Reporting</text></g>
+  </g>
+
+  <path d="M159 150V212" fill="none" stroke="#2dd4bf" stroke-width="2" marker-end="url(#arrowTeal)"/>
+  <text x="150" y="181" text-anchor="end" font-size="11" font-weight="600" fill="#5eead4">settings</text>
+  <path d="M201 212V150" fill="none" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="210" y="181" font-size="11" font-weight="600" fill="#cbd5e1">events</text>
+
+  <g filter="url(#shadow)">
+    <rect x="70" y="214" width="220" height="266" rx="17" fill="#111827" stroke="#60a5fa" stroke-width="2.5"/>
+    <rect x="70" y="214" width="220" height="58" rx="17" fill="#2563eb"/><rect x="70" y="252" width="220" height="20" fill="#2563eb"/>
+    <text x="180" y="250" text-anchor="middle" font-size="19" font-weight="700" fill="#fff">Customer runtime</text>
+    <text x="180" y="296" text-anchor="middle" font-size="12" fill="#94a3b8">Runs in your environment</text>
+    <g fill="#172554" stroke="#3b82f6"><rect x="95" y="320" width="170" height="40" rx="9"/><rect x="95" y="374" width="170" height="40" rx="9"/><rect x="95" y="428" width="170" height="40" rx="9"/></g>
+    <g text-anchor="middle" font-size="13" font-weight="600" fill="#bfdbfe"><text x="180" y="345">Filters visible tools</text><text x="180" y="399">Checks each call</text><text x="180" y="453">Records the result</text></g>
+  </g>
+
+  <path d="M133 480V516" fill="none" stroke="#94a3b8" stroke-width="2" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  <text x="124" y="503" text-anchor="end" font-size="10" font-weight="600" fill="#cbd5e1">tools + calls</text>
+  <path d="M227 480V516" fill="none" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="236" y="503" font-size="10" font-weight="600" fill="#cbd5e1">allowed calls</text>
+
+  <g filter="url(#shadow)">
+    <rect x="18" y="518" width="154" height="142" rx="15" fill="#111827" stroke="#a78bfa" stroke-width="2"/>
+    <text x="95" y="548" text-anchor="middle" font-size="15" font-weight="700" fill="#e6edf3">Clients and apps</text>
+    <text x="95" y="568" text-anchor="middle" font-size="11" fill="#94a3b8">Request available tools</text>
+    <g fill="#251c3d" stroke="#8b5cf6"><rect x="34" y="586" width="54" height="27" rx="7"/><rect x="100" y="586" width="56" height="27" rx="7"/><rect x="34" y="621" width="54" height="27" rx="7"/><rect x="100" y="621" width="56" height="27" rx="7"/></g>
+    <g text-anchor="middle" font-size="10" font-weight="600" fill="#ddd6fe"><text x="61" y="604">Cursor</text><text x="128" y="604">Claude</text><text x="61" y="639">Codex</text><text x="128" y="639">SDK app</text></g>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="188" y="518" width="154" height="142" rx="15" fill="#111827" stroke="#f59e0b" stroke-width="2"/>
+    <text x="265" y="548" text-anchor="middle" font-size="15" font-weight="700" fill="#e6edf3">Servers and tools</text>
+    <text x="265" y="568" text-anchor="middle" font-size="11" fill="#94a3b8">Perform approved actions</text>
+    <g fill="#3a2b14" stroke="#f59e0b"><rect x="204" y="586" width="122" height="27" rx="7"/><rect x="204" y="621" width="122" height="27" rx="7"/></g>
+    <g text-anchor="middle" font-size="10" font-weight="600" fill="#fde68a"><text x="265" y="604">Built-in MCP tools</text><text x="265" y="639">Customer MCP servers</text></g>
+  </g>
+</svg>

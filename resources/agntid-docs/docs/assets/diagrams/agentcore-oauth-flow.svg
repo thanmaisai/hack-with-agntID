@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 430" role="img" aria-labelledby="title desc" font-family="'IBM Plex Sans',-apple-system,BlinkMacSystemFont,sans-serif">
+  <title id="title">OAuth access from AWS AgentCore to AgntID tools</title>
+  <desc id="desc">The user signs in through the reference portal. The portal refreshes the OAuth token and invokes AgentCore. AgentCore lists or calls tools through the AgntID runtime. The runtime filters tools, checks calls, forwards allowed work to MCP servers, and records reporting events.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0l8 4-8 4z" fill="#64748b"/></marker>
+    <marker id="arrowGreen" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0l8 4-8 4z" fill="#16a34a"/></marker>
+  </defs>
+  <rect width="1200" height="430" rx="18" fill="#f8fafc"/>
+  <text x="40" y="36" font-size="12" font-weight="700" fill="#0f766e">SIGNED-IN REQUEST</text>
+  <rect x="40" y="58" width="185" height="94" rx="15" fill="#fff" stroke="#0d9488" stroke-width="2"/>
+  <text x="132" y="94" text-anchor="middle" font-size="17" font-weight="700" fill="#134e4a">User</text><text x="132" y="121" text-anchor="middle" font-size="13" fill="#475569">prompt + sign-in</text>
+  <rect x="275" y="58" width="210" height="94" rx="15" fill="#fff" stroke="#0d9488" stroke-width="2"/>
+  <text x="380" y="91" text-anchor="middle" font-size="17" font-weight="700" fill="#134e4a">Reference portal</text><text x="380" y="116" text-anchor="middle" font-size="13" fill="#475569">keeps and refreshes</text><text x="380" y="135" text-anchor="middle" font-size="13" fill="#475569">OAuth access</text>
+  <rect x="535" y="58" width="218" height="94" rx="15" fill="#fff" stroke="#f59e0b" stroke-width="2"/>
+  <text x="644" y="91" text-anchor="middle" font-size="17" font-weight="700" fill="#92400e">AWS AgentCore</text><text x="644" y="116" text-anchor="middle" font-size="13" fill="#475569">local or deployed agent</text><text x="644" y="135" text-anchor="middle" font-size="13" fill="#475569">selects a visible tool</text>
+  <rect x="803" y="58" width="214" height="190" rx="16" fill="#fff" stroke="#22c55e" stroke-width="2"/>
+  <text x="910" y="92" text-anchor="middle" font-size="17" font-weight="700" fill="#166534">AgntID runtime</text>
+  <g fill="#f0fdf4" stroke="#86efac"><rect x="830" y="113" width="160" height="36" rx="8"/><rect x="830" y="160" width="160" height="36" rx="8"/><rect x="830" y="207" width="160" height="36" rx="8"/></g>
+  <g text-anchor="middle" font-size="12" font-weight="600" fill="#14532d"><text x="910" y="136">filter tools by profile</text><text x="910" y="183">check call inputs</text><text x="910" y="230">record the outcome</text></g>
+  <rect x="803" y="294" width="214" height="84" rx="15" fill="#fff" stroke="#8b5cf6" stroke-width="2"/>
+  <text x="910" y="329" text-anchor="middle" font-size="17" font-weight="700" fill="#5b21b6">MCP servers</text><text x="910" y="354" text-anchor="middle" font-size="13" fill="#6d28d9">allowed calls only</text>
+  <rect x="1053" y="104" width="112" height="96" rx="15" fill="#fff" stroke="#f59e0b" stroke-width="2"/>
+  <text x="1109" y="141" text-anchor="middle" font-size="16" font-weight="700" fill="#92400e">Reporting</text><text x="1109" y="166" text-anchor="middle" font-size="12" fill="#78350f">allow or deny</text>
+  <g stroke="#64748b" stroke-width="2" fill="none" marker-end="url(#arrow)"><path d="M225 105h46"/><path d="M485 105h46"/><path d="M753 105h46"/><path d="M1017 151h32"/><path d="M910 248v42"/></g>
+  <path d="M535 139c-32 62-226 70-255 17" stroke="#16a34a" stroke-width="2" fill="none" marker-end="url(#arrowGreen)"/>
+  <text x="405" y="195" text-anchor="middle" font-size="12" font-weight="600" fill="#15803d">answer + tool trace</text>
+  <text x="40" y="406" font-size="13" fill="#475569">The OAuth token carries user access. The protection profile and runtime policy decide which tools are visible and which calls may run.</text>
+</svg>
