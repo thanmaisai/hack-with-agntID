@@ -12,9 +12,12 @@ import asyncio
 import os
 
 import httpx
+from dotenv import load_dotenv
 
 from agent import run_direct, run_agntid
 from attacks import ATTACKS
+
+load_dotenv()
 
 SHOP_MCP_URL = os.getenv("SHOP_MCP_URL", "http://localhost:9000/mcp")
 SHOP_ADMIN_BASE = os.getenv("SHOP_ADMIN_BASE", "http://localhost:9000")

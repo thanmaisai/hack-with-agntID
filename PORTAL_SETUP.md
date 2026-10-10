@@ -1,7 +1,7 @@
 # AgntID Portal Configuration Guide
 
 **Project: Vend-Safe**  
-**Do this once.** After all steps are done, `python run_compare.py` will work end-to-end.
+**Do this once.** After these steps and local `.env` setup, `python demo.py run` runs the comparison.
 
 ---
 
@@ -217,7 +217,7 @@ fi
 .venv/bin/python -m pip install -e "./agntid-python[openai]"
 
 # Set the model key used by the local agent (the portal's agntID key is for intent classification)
-export OPENAI_API_KEY=sk-...
+# Edit .env and set OPENAI_API_KEY there; keep it out of chat and source control.
 
 # Run individual attacks
 .venv/bin/python agent.py --mode direct --attack 1   # 💥 100% discount applied
@@ -229,8 +229,11 @@ export OPENAI_API_KEY=sk-...
 .venv/bin/python agent.py --mode direct --attack 3   # 💥 customer list emailed outside
 .venv/bin/python agent.py --mode agntid --attack 3   # 🛡️ send_email not in shortlist
 
+# Check services and required configuration without printing the key
+.venv/bin/python demo.py doctor
+
 # Full comparison scoreboard (resets shop between each run)
-.venv/bin/python run_compare.py
+.venv/bin/python demo.py run
 ```
 
 ---

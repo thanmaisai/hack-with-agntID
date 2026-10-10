@@ -19,10 +19,14 @@ import json
 import os
 
 import openai
+from dotenv import load_dotenv
 from mcp import ClientSession
 from mcp.client.streamable_http import streamable_http_client
 
 from attacks import ATTACKS, SYSTEM_PROMPT
+
+# Load project-local configuration for direct invocation and `python -m` alike.
+load_dotenv()
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -174,7 +178,7 @@ async def run_direct(attack: int) -> dict:
     """Run attack directly against the shop MCP server (no AgntID)."""
     prompt = ATTACKS[attack]
 
-    async with streamable_http_client(SHOP_MCP_URL) as (read, write):
+    async with streamable_http_client(SHOP_MCP_URL) as (read, write, _get_session_id):
         async with ClientSession(read, write) as session:
             await session.initialize()
             raw_tools = await session.list_tools()
