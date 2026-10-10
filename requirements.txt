@@ -1,0 +1,8 @@
+fastmcp>=2.0
+uvicorn
+httpx
+openai>=2.20,<3
+# AgntID Python SDK - install from source:
+# git clone https://github.com/AGNTID-AI/agntid-python.git
+# pip install -e ./agntid-python
+# pip install -e "./agntid-python[openai]"
