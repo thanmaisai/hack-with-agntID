@@ -3,6 +3,7 @@ import {
   ArrowDownRight, ArrowRight, ArrowUpRight, Check, ChevronDown, CircleHelp,
   ExternalLink, FlaskConical, LoaderCircle, Play, RefreshCw, ShieldCheck,
   ShieldX, Sparkles, Store, Terminal, X, Settings2, Save, Activity,
+  ShoppingBasket, MessageCircle, Send, ReceiptText, PackageCheck,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -133,8 +134,65 @@ function ShopSettings({ running, onChange }) {
   </Card>;
 }
 
+const productLabel = (item) => item.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+const money = (value) => `$${Number(value || 0).toFixed(2)}`;
+
+function ShopFloor({ running, onTryRequest }) {
+  const [store, setStore] = useState(null);
+  const [customer, setCustomer] = useState("Guest");
+  const [request, setRequest] = useState("");
+  const [notice, setNotice] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const refresh = useCallback(async () => {
+    try {
+      const response = await fetch("/api/store", { cache: "no-store" });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not load the shop.");
+      setStore(data);
+    } catch (error) { setNotice(error.message); }
+  }, []);
+
+  useEffect(() => { refresh(); const interval = window.setInterval(refresh, 8000); return () => window.clearInterval(interval); }, [refresh]);
+  const checkout = async (item) => {
+    setBusy(true); setNotice("");
+    try {
+      const response = await fetch("/api/store/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ item, quantity: 1 }) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Checkout could not complete.");
+      setNotice(`${productLabel(item)} purchased · ${money(data.sale.total)} added to shop cash.`); await refresh();
+    } catch (error) { setNotice(error.message); } finally { setBusy(false); }
+  };
+  const submitRequest = async (event) => {
+    event.preventDefault(); if (request.trim().length < 4) return;
+    setBusy(true); setNotice("");
+    try {
+      const response = await fetch("/api/store/request", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ customer: customer.trim() || "Guest", message: request.trim() }) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not send request.");
+      setRequest(""); setNotice("Customer request received. Open it in the agent playground to decide what happens next."); await refresh();
+    } catch (error) { setNotice(error.message); } finally { setBusy(false); }
+  };
+  const salesTotal = (store?.sales || []).reduce((total, sale) => total + Number(sale.total || 0), 0);
+  return <>
+    <Card className="shop-hero-card">
+      <div><div className="eyebrow"><Store size={14} /> Live shop floor</div><h2>Vend-Safe Corner Store</h2><p>A synthetic, live storefront: purchases change cash and stock immediately. Customer requests become an agent decision.</p></div>
+      <div className="shop-kpis"><span><strong>{money(store?.cash)}</strong>cash</span><span><strong>{money(salesTotal)}</strong>sales</span><span><strong>{(store?.customer_requests || []).filter((entry) => entry.status === "open").length}</strong>open requests</span></div>
+    </Card>
+    <section className="shop-grid" aria-label="Live shop">
+      <Card className="shop-products"><div className="card-heading"><div><div className="eyebrow">Curated storefront</div><h2>Buy from the shelf</h2><p>Core items are available now. Special orders stay out of the shelf flow.</p></div><Button variant="ghost" size="icon" onClick={refresh} aria-label="Refresh shop"><RefreshCw size={15} /></Button></div>
+        <div className="product-list">{store ? Object.entries(store.inventory || {}).map(([item, product]) => { const catalog = store.catalog?.[item] || {}; const canBuy = catalog.purchasable !== false && product.stock > 0; return <article className="product" key={item}><div className="product-icon"><ShoppingBasket size={16} /></div><div><strong>{catalog.name || productLabel(item)}</strong><span className="product-kind">{catalog.kind || "Catalog item"}</span><span>{catalog.description || `${product.stock} in stock`}</span><span>{product.stock} in stock · cost {money(product.cost)}</span></div><div className="product-action"><strong>{money(product.price)}</strong><Button size="sm" variant="outline" disabled={busy || running || !canBuy} onClick={() => checkout(item)}>{catalog.purchasable === false ? <><PackageCheck size={13} /> Preorder</> : <><ReceiptText size={13} /> Buy</>}</Button></div></article>; }) : <div className="trace-empty">Loading live inventory…</div>}</div>
+      </Card>
+      <Card className="customer-card"><div className="eyebrow"><MessageCircle size={14} /> Customer channel</div><h2>Ask the shop manager</h2><p>Submit a real-time customer request, then send it to the agent playground.</p><form onSubmit={submitRequest} className="customer-form"><input value={customer} maxLength={40} onChange={(event) => setCustomer(event.target.value)} placeholder="Your name" disabled={busy} /><textarea value={request} maxLength={280} onChange={(event) => setRequest(event.target.value)} placeholder="Can you discount cola by 10%?" disabled={busy} /><Button type="submit" disabled={busy || request.trim().length < 4}><Send size={14} /> Send request</Button></form>
+        {notice && <p className="shop-notice" role="status">{notice}</p>}
+      </Card>
+    </section>
+    <Card className="requests-card"><div className="card-heading"><div><div className="eyebrow">Manager inbox</div><h2>Customer requests need a decision</h2></div><PackageCheck size={18} /></div><div className="request-list">{(store?.customer_requests || []).slice(0, 4).map((entry) => <article className="customer-request" key={entry.id}><div><strong>{entry.customer}</strong><p>{entry.message}</p></div><Button size="sm" variant="outline" disabled={running} onClick={() => onTryRequest(`A customer named ${entry.customer} asks: “${entry.message}” Decide how to help them using the shop tools, and explain the outcome.`)}><Sparkles size={13} /> Ask agent</Button></article>) || <div className="trace-empty">No customer requests yet.</div>}</div></Card>
+  </>;
+}
+
 export default function App() {
-  const [view, setView] = useState("playground");
+  const [view, setView] = useState("shop");
   const [shopSettings, setShopSettings] = useState(freshSettings);
   const [resultKind, setResultKind] = useState("guided");
   const [prompt, setPrompt] = useState("");
@@ -235,13 +293,14 @@ export default function App() {
       </section>
 
       <div className="view-switch" role="tablist" aria-label="Demo mode">
+        <button role="tab" aria-selected={view === "shop"} className={view === "shop" ? "active" : ""} onClick={() => setView("shop")}><Store size={14} /> Live shop</button>
         <button role="tab" aria-selected={view === "playground"} className={view === "playground" ? "active" : ""} onClick={() => setView("playground")}><Sparkles size={14} /> Playground</button>
         <button role="tab" aria-selected={view === "guided"} className={view === "guided" ? "active" : ""} onClick={() => setView("guided")}><ShieldCheck size={14} /> Guided scenarios</button>
       </div>
 
-      {view === "playground" ? <>
+      {view === "shop" ? <><ShopFloor running={running} onTryRequest={(nextPrompt) => { setPrompt(nextPrompt); setView("playground"); }} /><ShopSettings running={running} onChange={setShopSettings} /></> : view === "playground" ? <>
         <Card className="playground-card">
-          <div className="playground-head"><div><div className="eyebrow">Try it live</div><h2>What should the shop agent do?</h2><p>Your exact prompt goes to the same agent in both paths.</p></div><Badge variant="outline"><span className="health-dot ready-dot" /> Same prompt · reset between runs</Badge></div>
+          <div className="playground-head"><div><div className="eyebrow">Vend manager console</div><h2>What should the shop manager decide?</h2><p>Your exact prompt goes to the same manager agent in both paths.</p></div><Badge variant="outline"><span className="health-dot ready-dot" /> Same prompt · reset between runs</Badge></div>
           <label className="sr-only" htmlFor="playgroundPrompt">Tell the shop agent what to do</label>
           <textarea id="playgroundPrompt" className="prompt-input" maxLength={500} value={prompt} onChange={(event) => setPrompt(event.target.value)} placeholder="Try: Set the price of cola to $0.10 and tell me what changed." disabled={running} />
           <div className="prompt-footer"><span>{prompt.length}/500</span><span>Try a starter</span></div>
@@ -264,8 +323,8 @@ export default function App() {
         <div className="run-row"><span className="run-note"><CircleHelp size={14} /> Synthetic shop data · API key stays in the backend</span><Button onClick={run} disabled={!ready || running || !selected.length}>{running ? <><LoaderCircle size={15} className="animate-spin" /> Running comparison</> : <><Play size={14} fill="currentColor" /> Run {selected.length === 3 ? "all scenarios" : selected.length === 1 ? "scenario" : `${selected.length} scenarios`} <ArrowRight size={15} /></>}</Button></div>
       </>}
 
-      <ScenarioTable rows={rows} checks={checks} kind={resultKind} />
-      <Trace events={events} open={traceOpen} setOpen={setTraceOpen} running={running} />
+      {view !== "shop" && <><ScenarioTable rows={rows} checks={checks} kind={resultKind} />
+      <Trace events={events} open={traceOpen} setOpen={setTraceOpen} running={running} /></>}
 
       <div className="policy-row"><span className="policy-label">Configured limits</span><span className="policy-chip"><ShieldCheck size={13} /> Discount ≤ {shopSettings.policy.max_discount_percent}%</span><span className="policy-chip"><ShieldCheck size={13} /> Orders ≤ {shopSettings.policy.max_order_quantity}</span><span className="policy-chip"><ShieldCheck size={13} /> Price ${Number(shopSettings.policy.min_price).toFixed(2)}–${Number(shopSettings.policy.max_price).toFixed(2)}</span><span className="policy-chip"><CircleHelp size={13} /> Guided scenario 3 uses a client-side tool shortlist</span></div>
       <footer className="footer"><span>VEND-SAFE · LOCAL DEMO</span><span>Audit evidence available in <a href="https://app.agntid.ai/reporting" target="_blank" rel="noreferrer" className="topbar-link">AgntID Reporting <ArrowUpRight size={12} /></a></span></footer>

@@ -1,0 +1,43 @@
+1
+00:00:00,000 --> 00:00:10,000
+Can an AI manager run a shop safely?
+
+2
+00:00:10,000 --> 00:00:20,000
+Project Vend exposed excessive discounts, loss-making purchases, and unsafe tool use.
+
+3
+00:00:20,000 --> 00:00:30,000
+Direct connection vs. the AgntID runtime
+
+4
+00:00:30,000 --> 00:00:40,000
+1 · Borrowed authority: a 100% discount
+
+5
+00:00:40,000 --> 00:00:50,000
+2 · Impossible order: 100 tungsten cubes
+
+6
+00:00:50,000 --> 00:01:00,000
+3 · Poisoned supplier quote
+
+7
+00:01:00,000 --> 00:01:10,000
+AgntID checks the actual tool call and arguments.
+
+8
+00:01:10,000 --> 00:01:20,000
+The shop state shows what really changed.
+
+9
+00:01:20,000 --> 00:01:30,000
+Live shop: purchases update cash and inventory.
+
+10
+00:01:30,000 --> 00:01:40,000
+Playground: try a real request with a full trace.
+
+11
+00:01:40,000 --> 00:01:44,000
+Useful tools. Explicit limits. Inspectable decisions.

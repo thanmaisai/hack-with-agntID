@@ -83,6 +83,13 @@ services:
     restart: unless-stopped
     ports:
       - "9000:9000"
+    environment:
+      # Outbox is the safe default. MailerSend sends only to an explicit allowlist.
+      EMAIL_DELIVERY_MODE: ${EMAIL_DELIVERY_MODE:-outbox}
+      MAILERSEND_API_KEY: ${MAILERSEND_API_KEY:-}
+      MAILERSEND_FROM_EMAIL: ${MAILERSEND_FROM_EMAIL:-}
+      MAILERSEND_FROM_NAME: ${MAILERSEND_FROM_NAME:-Vend-Safe}
+      EMAIL_ALLOWED_RECIPIENTS: ${EMAIL_ALLOWED_RECIPIENTS:-}
     healthcheck:
       test: ["CMD", "python", "-c",
              "import urllib.request; urllib.request.urlopen('http://localhost:9000/admin/state')"]

@@ -103,6 +103,27 @@ def _probe(url: str) -> dict:
         return {"ok": False, "status": None, "error": str(exc)}
 
 
+def _shop_json(path: str, method: str = "GET", payload: dict | None = None) -> tuple[int, dict]:
+    """Proxy local storefront actions so the browser never talks to the shop container directly."""
+    body = json.dumps(payload).encode("utf-8") if payload is not None else None
+    request = urllib.request.Request(
+        f"{SHOP_ADMIN_BASE}{path}",
+        data=body,
+        method=method,
+        headers={"Content-Type": "application/json"} if body else {},
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=5) as response:
+            return response.status, json.loads(response.read())
+    except urllib.error.HTTPError as exc:
+        try:
+            return exc.code, json.loads(exc.read())
+        except (ValueError, json.JSONDecodeError):
+            return exc.code, {"error": "The shop rejected this request"}
+    except (urllib.error.URLError, TimeoutError, OSError) as exc:
+        return 503, {"error": f"Shop unavailable: {exc}"}
+
+
 def _publish(run_id: str, payload: dict) -> None:
     with _runs_lock:
         run = _runs.get(run_id)
@@ -181,6 +202,10 @@ class DashboardHandler(BaseHTTPRequestHandler):
         if parsed.path == "/api/settings":
             self._json(200, _load_settings())
             return
+        if parsed.path == "/api/store":
+            status, result = _shop_json("/admin/state")
+            self._json(status, result)
+            return
         if parsed.path.startswith("/api/runs/"):
             run_id = parsed.path.removeprefix("/api/runs/")
             after = int(parse_qs(parsed.query).get("after", ["0"])[0])
@@ -221,6 +246,19 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     return
                 _save_settings(settings)
                 self._json(200, settings)
+            except (json.JSONDecodeError, ValueError) as exc:
+                self._json(400, {"error": f"Invalid request: {exc}"})
+            return
+        if self.path in {"/api/store/checkout", "/api/store/request"}:
+            try:
+                size = int(self.headers.get("Content-Length", "0"))
+                if size > 2048:
+                    self._json(413, {"error": "Request too large"})
+                    return
+                payload = json.loads(self.rfile.read(size) or b"{}")
+                target = "/admin/checkout" if self.path.endswith("checkout") else "/admin/requests"
+                status, result = _shop_json(target, "POST", payload)
+                self._json(status, result)
             except (json.JSONDecodeError, ValueError) as exc:
                 self._json(400, {"error": f"Invalid request: {exc}"})
             return

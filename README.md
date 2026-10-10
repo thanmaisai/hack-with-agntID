@@ -16,7 +16,7 @@ one-time setup → add your local API key → start services → readiness check
 | Loss-making bulk order | Can order 100 items and set a very low price | Quantity and price limits deny unsafe inputs |
 | Poisoned supplier quote | Can retrieve the synthetic roster and write an external address to the local outbox | The quote remains untrusted data; task-specific tool selection keeps inventory/email outside the task shortlist, and the demo prompt tells the agent not to follow quote instructions |
 
-Emails are recorded only in the local shop outbox. The demo uses synthetic data. Prompts and tool results are sent to the configured OpenAI API for model calls.
+The demo uses synthetic data. Shop email writes to a local outbox by default. For a quick controlled inbox test, it can deliver through MailerSend Sandbox with an API token, sandbox sender, and explicit recipient allowlist in `.env`. Prompts and tool results are sent to the configured OpenAI API for model calls.
 
 ## Project layout
 
@@ -30,6 +30,8 @@ docker-compose.yml   React UI, demo API, shop, AgntID runtime, and intent parser
 Dockerfile           Isolated shop server image
 Dockerfile.dashboard Demo API image; installs the local AgntID SDK
 ui/                  React + Vite UI, shadcn-style components, and Lucide icons
+LIVE_DEMO_FLOW.md    Presenter story, curated catalog, and click-by-click demo flow
+DEMO_VIDEO_FLOW.md    Timed 2–3 minute video script with voice-over and captions
 requirements.txt     Local Python agent dependencies
 requirements-shop.txt Shop container dependencies (FastMCP 2.14.x for runtime compatibility)
 .env.example         Safe configuration template; copy to ignored .env
@@ -85,7 +87,7 @@ Start the Docker-hosted React UI and services:
 docker compose up -d --build
 ```
 
-Open `http://127.0.0.1:8501`. Start in **Playground** to enter any shop request or choose a prompt starter. The exact same prompt is run once directly and once through AgntID, with a shop reset between them. The live trace follows model plans, tool calls, runtime decisions, and resulting shop state. Use **Guided scenarios** for the fixed examples and their expected checks. Playground runs are exploratory and do not claim a pass/fail result. The UI and API run in Docker; the browser never receives the API key. Prompts are sent to the configured model API, so use synthetic data only. To use the short launcher, run `.venv/bin/python demo.py dashboard`.
+Open `http://127.0.0.1:8501`. Begin on **Live shop**: purchases update cash and stock in real time, and customer requests can be handed directly to the manager agent. Use **Playground** to enter any shop request or choose a prompt starter. The exact same prompt is run once directly and once through AgntID, with a shop reset between them. The live trace follows model plans, tool calls, runtime decisions, and resulting shop state. Use **Guided scenarios** for the fixed examples and their expected checks. Playground runs are exploratory and do not claim a pass/fail result. The UI and API run in Docker; the browser never receives the API key. Prompts are sent to the configured model API, so use synthetic data only. To use the short launcher, run `.venv/bin/python demo.py dashboard`.
 
 To run the comparison in a terminal instead:
 
@@ -128,6 +130,10 @@ curl -X POST http://localhost:9000/admin/reset
 | `SHOP_ADMIN_BASE` | `http://localhost:9000` | Comparison harness state/reset endpoints |
 | `AGNTID_MCP_URL` | `http://localhost:8082/mcp` | AgntID runtime MCP endpoint |
 | `AGNTID_ACCESS_TOKEN` | empty | Optional OAuth token if the local runtime requires one |
+| `EMAIL_DELIVERY_MODE` | `outbox` | `mailersend` enables MailerSend Sandbox delivery |
+| `MAILERSEND_API_KEY` | empty | MailerSend API token |
+| `MAILERSEND_FROM_EMAIL` | empty | Sender address on your MailerSend sandbox domain |
+| `EMAIL_ALLOWED_RECIPIENTS` | empty | Comma-separated inbox allowlist (Sandbox allows 2 recipients) |
 | `RUSE_AGENID_ENDPOINT` | Compose default | Optional control-plane callback override |
 
 ## Troubleshooting

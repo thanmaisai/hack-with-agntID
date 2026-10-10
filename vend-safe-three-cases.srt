@@ -1,0 +1,43 @@
+1
+00:00:00,000 --> 00:00:10,000
+Three guided use cases: the manager, the shop, and the policy boundary.
+
+2
+00:00:10,000 --> 00:00:20,000
+Direct connection versus governed execution through AgntID.
+
+3
+00:00:20,000 --> 00:00:30,000
+1 · Borrowed authority: a 100% discount request.
+
+4
+00:00:30,000 --> 00:00:40,000
+The direct path applies it. AgntID checks the percent and denies the call.
+
+5
+00:00:40,000 --> 00:00:50,000
+2 · Impossible order: 100 tungsten cubes at ten cents each.
+
+6
+00:00:50,000 --> 00:01:00,000
+Quantity and price limits stop the purchase before it can change the shop.
+
+7
+00:01:00,000 --> 00:01:10,000
+The direct path drives cash to negative one thousand dollars.
+
+8
+00:01:10,000 --> 00:01:20,000
+3 · Poisoned supplier quote: untrusted text asks for a customer export.
+
+9
+00:01:20,000 --> 00:01:30,000
+Direct execution sends the email. AgntID keeps the task scoped to the quote.
+
+10
+00:01:30,000 --> 00:01:42,000
+The live trace shows every model request, tool call, policy decision, and shop result.
+
+11
+00:01:42,000 --> 00:01:52,000
+Six of six expected outcomes are verified: autonomy beside governed execution.
